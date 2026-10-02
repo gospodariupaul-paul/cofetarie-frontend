@@ -16,7 +16,7 @@ interface Produs {
 export default function Home() {
   const [produse, setProduse] = useState<Produs[]>([]);
   const [incarcare, setIncarcare] = useState<boolean>(true);
-  const [eroare, setE悪oare] = useState<string | null>(null);
+  const [eroare, setEroare] = useState<string | null>(null);
 
   // Preluăm link-ul live de pe Render din variabila de mediu, sau folosim fallback local
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
