@@ -19,6 +19,9 @@ export default function Home() {
   const [produse, setProduse] = useState<Produs[]>([]);
   const [incarcare, setIncarcare] = useState<boolean>(true);
   const [eroare, setEroare] = useState<string | null>(null);
+  
+  // Statut pentru filtrarea interactivă: "toate", "torturi", "prajituri"
+  const [categorieActiva, setCategorieActiva] = useState<string>("toate");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
@@ -40,6 +43,13 @@ export default function Home() {
     }
     incarcaDatele();
   }, [API_URL]);
+
+  // Filtrarea dinamică a produselor alimentare pe baza butonului selectat
+  const produseFiltrate = produse.filter((p) => {
+    if (p.category === "tech-deals") return false; // Excludem gadgeturile de aici
+    if (categorieActiva === "toate") return true;
+    return p.category.toLowerCase() === categorieActiva.toLowerCase();
+  });
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-gray-800 flex flex-col justify-between">
@@ -71,11 +81,49 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Vitrina digitala cu prăjituri */}
+          {/* Secțiunea de Statistici / Cifrele Noastre */}
+          <section className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center my-6">
+            {[
+              { cifra: "15,000+", desc: "Clienți Fericiți" },
+              { cifra: "45+", desc: "Rețete Unice" },
+              { cifra: "100%", desc: "Ingrediente Naturale" },
+              { cifra: "3D Tech", desc: "Design Culinar" }
+            ].map((stat, i) => (
+              <div key={i} className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-pink-100/40 shadow-sm hover:scale-105 transition-all duration-300">
+                <p className="text-3xl font-black text-pink-600">{stat.cifra}</p>
+                <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{stat.desc}</p>
+              </div>
+            ))}
+          </section>
+
+          {/* Vitrina digitala cu prăjituri + Filtre interactive */}
           <section className="max-w-7xl mx-auto px-6 py-12">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-8 border-b pb-4 border-pink-100 flex items-center gap-2">
-              <span>🍰</span> Prăjituri și Torturi Artizanale
-            </h2>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 border-b pb-4 border-pink-100 gap-4">
+              <h2 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
+                <span>🍰</span> Vitrina Noastră Digitală
+              </h2>
+              
+              {/* Butoanele interactive de filtrare */}
+              <div className="flex bg-pink-50/60 p-1.5 rounded-xl border border-pink-100 self-start md:self-auto shadow-inner">
+                {[
+                  { id: "toate", label: "Toate produsele" },
+                  { id: "torturi", label: "Torturi" },
+                  { id: "prajituri", label: "Prăjituri" }
+                ].map((btn) => (
+                  <button
+                    key={btn.id}
+                    onClick={() => setCategorieActiva(btn.id)}
+                    className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
+                      categorieActiva === btn.id
+                        ? "bg-pink-600 text-white shadow"
+                        : "text-gray-600 hover:text-pink-600"
+                    }`}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {incarcare && (
               <div className="flex justify-center items-center py-20 gap-3">
@@ -90,44 +138,65 @@ export default function Home() {
               </div>
             )}
 
-            {!incarcare && !eroare && produse.length === 0 && (
-              <p className="text-center text-gray-500 font-medium py-10">Momentan nu sunt produse active în vitrină.</p>
+            {!incarcare && !eroare && produseFiltrate.length === 0 && (
+              <p className="text-center text-gray-500 font-medium py-10">Momentan nu sunt produse active în această categorie.</p>
             )}
 
-            {!incarcare && produse.length > 0 && (
+            {!incarcare && produseFiltrate.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {produse
-                  .filter((p) => p.category !== "tech-deals")
-                  .map((produs) => (
-                    <div
-                      key={produs.id}
-                      className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-300 relative">
-                          <span>{produs.icon || "🧁"}</span>
-                          {produs.tag && (
-                            <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border text-pink-600 shadow-sm">
-                              {produs.tag}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] font-bold text-pink-500 uppercase tracking-wider mt-4">{produs.category}</p>
-                        <h3 className="text-lg font-bold text-gray-900 mt-1">{produs.name}</h3>
-                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">{produs.description}</p>
+                {produseFiltrate.map((produs) => (
+                  <div
+                    key={produs.id}
+                    className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                        <span>{produs.icon || "🧁"}</span>
+                        {produs.tag && (
+                          <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border text-pink-600 shadow-sm animate-pulse">
+                            {produs.tag}
+                          </span>
+                        )}
                       </div>
-
-                      <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
-                        <p className="text-xl font-black text-gray-900">{produs.price} LEI</p>
-                        <button className="rounded-xl bg-pink-600 text-white font-bold text-xs px-4 py-2.5 shadow-md hover:bg-pink-700 transition">
-                          Adaugă în coș
-                        </button>
-                      </div>
+                      <p className="text-[10px] font-bold text-pink-500 uppercase tracking-wider mt-4">{produs.category}</p>
+                      <h3 className="text-lg font-bold text-gray-900 mt-1">{produs.name}</h3>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">{produs.description}</p>
                     </div>
-                  ))}
+
+                    <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
+                      <p className="text-xl font-black text-gray-900">{produs.price} LEI</p>
+                      <button className="rounded-xl bg-pink-600 text-white font-bold text-xs px-4 py-2.5 shadow-md hover:bg-pink-700 transition">
+                        Adaugă în coș
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </section>
+          {/* Secțiunea Grafică de Ingrediente Premium */}
+          <section className="max-w-7xl mx-auto px-6 py-16 bg-gradient-to-r from-rose-50/50 to-pink-50/30 rounded-3xl my-12 border border-pink-100/20">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <h2 className="text-3xl font-extrabold text-gray-950">Doar Ingrediente Secrete Ultra-Premium 🍓</h2>
+              <p className="text-sm text-gray-600 mt-2">Gustul desăvârșit vine din calitatea absolută a materiilor prime folosite în laboratorul nostru artizanal.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { icon: "🍫", titlu: "Ciocolată Belgiană", desc: "Calitate superioară Callebaut, cu 70% cacao fină." },
+                { icon: "🥛", titlu: "Frișcă Naturală 36%", desc: "Fără surogate vegetale, extrasă pur din lapte de fermă." },
+                { icon: "🍓", titlu: "Fructe Proaspete", desc: "Selecție locală zilnică și piureuri fine fragede." },
+                { icon: "🌱", titlu: "Păstăi de Vanilie", desc: "Vanilie autentică de Madagascar pentru aromă intensă." }
+              ].map((ing, i) => (
+                <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/40 text-center">
+                  <div className="text-4xl mb-4">{ing.icon}</div>
+                  <h3 className="font-extrabold text-gray-900 text-base">{ing.titlu}</h3>
+                  <p className="text-xs text-gray-500 mt-2 leading-relaxed">{ing.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* Secțiunea Hi-Tech carusel */}
           <TechDeals />
 
@@ -136,12 +205,12 @@ export default function Home() {
             <h2 className="text-3xl font-extrabold text-center text-gray-950 mb-10">Ce spun clienții noștri 😍</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { nume: "Elena R.", text: "Tortul Kinder comandat pentru nuntă a fost spectaculos! Toți invitații au întrebat de unde l-am luat.", stele: "⭐⭐⭐⭐⭐" },
-                { nume: "Paul G.", text: "Combinația de laborator tradițional cu imprimante 3D alimentare sună SF, dar gustul este incredibil.", stele: "⭐⭐⭐⭐⭐" },
-                { nume: "Andreea M.", text: "Amandinele insiropate exact ca în copilărie. Recomand din tot sufletul Dulce Gust!", stele: "⭐⭐⭐⭐⭐" }
+                { nume: "Elena R.", text: "Tortul Kinder comandat pentru nuntă a fost spectaculos! Toți invitații au întrebat de unde l-am luat." },
+                { nume: "Paul G.", text: "Combinația de laborator tradițional cu imprimante 3D alimentare sună SF, dar gustul este incredibil." },
+                { nume: "Andreea M.", text: "Amandinele insiropate exact ca în copilărie. Recomand din tot sufletul Dulce Gust!" }
               ].map((r, i) => (
                 <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30">
-                  <div className="text-pink-500 mb-2">{r.stele}</div>
+                  <div className="text-pink-500 mb-2">⭐⭐⭐⭐⭐</div>
                   <p className="text-sm text-gray-600 italic">"{r.text}"</p>
                   <h4 className="mt-4 font-bold text-gray-900 text-right text-xs">- {r.nume}</h4>
                 </div>
