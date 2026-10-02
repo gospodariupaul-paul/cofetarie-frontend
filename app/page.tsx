@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 import TechDeals from "@/components/TechDeals";
 
