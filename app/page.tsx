@@ -166,7 +166,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div>
             <h3 className="text-white text-xl font-black tracking-tight">Dulce<span className="text-pink-500">Gust</span></h3>
-            <p className="text-xs mt-4 leading-relaxed">Laborator artizanal premium unde dulciurile tradiționale sunt optimizate cu tehnologie de ultimă generație pentru un gust memorabil.</p>
+            <p className="text-xs mt-4 leading-relaxed">Laborator artizanal premium unde dulciurile tradiționale sunt optimizate cu tehnologie de ultimă geração pentru un gust memorabil.</p>
           </div>
           <div>
             <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Program Laborator</h4>
