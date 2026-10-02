@@ -132,7 +132,7 @@ export default function Home() {
         {/* Secțiunea Hi-Tech carusel */}
         <TechDeals />
 
-        {/* NOU: Secțiune de Recenzii de la clienți */}
+        {/* Secțiune de Recenzii de la clienți */}
         <section className="max-w-7xl mx-auto px-6 py-16 bg-pink-50/30 rounded-3xl my-12">
           <h2 className="text-3xl font-extrabold text-center text-gray-950 mb-10">Ce spun clienții noștri 😍</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -150,7 +150,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* NOU: Secțiune Abonare Newsletter */}
+        {/* Secțiune Abonare Newsletter */}
         <section className="max-w-4xl mx-auto px-6 py-12 text-center bg-gradient-to-r from-pink-600 to-rose-500 rounded-3xl my-12 text-white shadow-lg">
           <h3 className="text-2xl font-black">Primește oferte dulci & tehnologice! 🎁</h3>
           <p className="text-sm text-pink-100 mt-2">Abonează-te la newsletter și primești 10% reducere la prima comandă de torturi.</p>
@@ -161,7 +161,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* NOU: Structură completă de FOOTER profesional */}
+      {/* Structură completă de FOOTER profesional */}
       <footer className="bg-gray-950 text-gray-400 pt-16 pb-8 px-6 border-t border-gray-900">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div>
