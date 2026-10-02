@@ -19,8 +19,8 @@ export default function Home() {
   const [incarcare, setIncarcare] = useState<boolean>(true);
   const [eroare, setEroare] = useState<string | null>(null);
 
-  // Preluăm link-ul live de pe Render din variabila de mediu, sau folosim fallback local
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
+  // CORECȚIE: Adresa completă oficială de producție către Render
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://cofetarie-backend.onrender.com";
 
   useEffect(() => {
     async function incarcaDatele() {
@@ -45,77 +45,100 @@ export default function Home() {
   const torturi = produse.filter((p) => p.category === "torturi");
   const prajituri = produse.filter((p) => p.category === "prajituri");
   return (
-    <main className="min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-gray-800">
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-pink-200/30 blur-3xl rounded-full pointer-events-none" />
-        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-gray-950">
-          Cofetăria <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500">Dulce Gust</span>
-        </h1>
-        <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto font-medium">
-          Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru momente de neuitat.
-        </p>
-      </section>
+    <>
+      {/* Componenta Navbar integrată la începutul paginii */}
+      <Navbar />
 
-      {/* Secțiunea de Produse din Baza de Date Neon */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-8 border-b pb-4 border-pink-100">
-          🍰 Prăjituri și Torturi Artizanale
-        </h2>
+      <main className="min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-gray-800">
+        {/* Hero Section - Secțiunea de prezentare */}
+        <section className="max-w-7xl mx-auto px-6 py-20 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-pink-200/30 blur-3xl rounded-full pointer-events-none" />
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight text-gray-950">
+            Cofetăria <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500">Dulce Gust</span>
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto font-medium">
+            Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru momente de neuitat.
+          </p>
+        </section>
 
-        {incarcare && (
-          <div className="flex justify-center items-center py-20 gap-3">
-            <div className="w-6 h-6 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
-            <span className="font-bold text-gray-500">Se încarcă bunătățile din server...</span>
-          </div>
-        )}
+        {/* Secțiunea de Produse - Încărcare dinamică din baza de date Neon */}
+        <section className="max-w-7xl mx-auto px-6 py-12">
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-8 border-b pb-4 border-pink-100">
+            🍰 Prăjituri și Torturi Artizanale
+          </h2>
 
-        {eroare && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl max-w-xl mx-auto text-center font-medium shadow-sm">
-            ⚠️ {eroare}. Se folosesc datele locale de siguranță.
-          </div>
-        )}
+          {/* Starea de încărcare locală în timp ce serverul procesează cererea */}
+          {incarcare && (
+            <div className="flex justify-center items-center py-20 gap-3">
+              <div className="w-6 h-6 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
+              <span className="font-bold text-gray-500">Se încarcă bunătățile din server...</span>
+            </div>
+          )}
 
-        {!incarcare && !eroare && produse.length === 0 && (
-          <p className="text-center text-gray-500 font-medium py-10">Momentan nu sunt produse disponibile în vitrină.</p>
-        )}
-        {!incarcare && produse.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {produse
-              .filter((p) => p.category !== "tech-deals") // Afișăm doar produsele alimentare aici
-              .map((produs) => (
-                <div
-                  key={produs.id}
-                  className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-300 relative">
-                      <span>{produs.icon || "🧁"}</span>
-                      {produs.tag && (
-                        <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border text-pink-600 shadow-sm">
-                          {produs.tag}
-                        </span>
-                      )}
+          {/* Mesaj de avertizare în cazul în care serverul blochează cererea sau este oprit */}
+          {eroare && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl max-w-xl mx-auto text-center font-medium shadow-sm">
+              ⚠️ {eroare}. Conectează backend-ul pentru a vedea prăjiturile.
+            </div>
+          )}
+
+          {/* Cazul în care tabela din baza de date este complet goală */}
+          {!incarcare && !eroare && produse.length === 0 && (
+            <p className="text-center text-gray-500 font-medium py-10">
+              Momentan nu sunt produse disponibile în vitrină.
+            </p>
+          )}
+          {/* Afișarea produselor alimentare din baza de date Neon */}
+          {!incarcare && produse.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {produse
+                .filter((p) => p.category !== "tech-deals") // Excludem gadgeturile din această zonă
+                .map((produs) => (
+                  <div
+                    key={produs.id}
+                    className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Container Imagine / Iconiță */}
+                      <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-300 relative">
+                        <span>{produs.icon || "🧁"}</span>
+                        {produs.tag && (
+                          <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border text-pink-600 shadow-sm">
+                            {produs.tag}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Detalii Produs */}
+                      <p className="text-[10px] font-bold text-pink-500 uppercase tracking-wider mt-4">
+                        {produs.category}
+                      </p>
+                      <h3 className="text-lg font-bold text-gray-900 mt-1">
+                        {produs.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                        {produs.description}
+                      </p>
                     </div>
-                    <p className="text-[10px] font-bold text-pink-500 uppercase tracking-wider mt-4">{produs.category}</p>
-                    <h3 className="text-lg font-bold text-gray-900 mt-1">{produs.name}</h3>
-                    <p className="text-xs text-gray-500 mt-2 line-clamp-2">{produs.description}</p>
-                  </div>
 
-                  <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <p className="text-xl font-black text-gray-900">{produs.price} LEI</p>
-                    <button className="rounded-xl bg-pink-600 text-white font-bold text-xs px-4 py-2.5 shadow-md hover:bg-pink-700 transition">
-                      Adaugă în coș
-                    </button>
+                    {/* Preț și Buton Acțiune */}
+                    <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
+                      <p className="text-xl font-black text-gray-900">
+                        {produs.price} LEI
+                      </p>
+                      <button className="rounded-xl bg-pink-600 text-white font-bold text-xs px-4 py-2.5 shadow-md hover:bg-pink-700 transition">
+                        Adaugă în coș
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-          </div>
-        )}
-      </section>
+                ))}
+            </div>
+          )}
+        </section>
 
-      {/* Secțiunea Tech Deals (Caruselul în mișcare pe care l-am optimizat anterior) */}
-      <TechDeals />
-    </main>
+        {/* Secțiunea Tech Deals (Caruselul în mișcare pe care l-am optimizat anterior) */}
+        <TechDeals />
+      </main>
+    </>
   );
 }
