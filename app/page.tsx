@@ -128,7 +128,6 @@ export default function Home() {
               </div>
             )}
           </section>
-
           {/* Secțiunea Hi-Tech carusel */}
           <TechDeals />
 
@@ -189,3 +188,16 @@ export default function Home() {
           <div>
             <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Contact Direct</h4>
             <ul className="text-xs space-y-2">
+              <li>📞 Telefon: 0722 000 000</li>
+              <li>✉️ Email: contact@dulcegust.ro</li>
+              <li>📍 Adresă: Str. Dulce nr. 10, Iași, România</li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto pt-8 border-t border-gray-900 text-center text-xs text-gray-600">
+          © 2026 DulceGust. Toate drepturile rezervate. Creat cu Next.js, Express și Prisma.
+        </div>
+      </footer>
+    </div>
+  );
+}
