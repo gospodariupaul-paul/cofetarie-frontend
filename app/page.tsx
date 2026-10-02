@@ -20,7 +20,6 @@ export default function Home() {
   const [incarcare, setIncarcare] = useState<boolean>(true);
   const [eroare, setEroare] = useState<string | null>(null);
 
-  // Endpoint-ul oficial de producție legat direct la serviciul Render
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
   useEffect(() => {
@@ -44,14 +43,12 @@ export default function Home() {
 
   return (
     <>
-      {/* Meniul superior de navigare publică */}
       <Navbar />
 
       <main className="min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-gray-800">
         
-        {/* Hero Section cu imaginea de fundal originala hero-cake.jpg */}
+        {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-6 py-32 text-center relative overflow-hidden rounded-3xl my-6 bg-gray-950 text-white shadow-xl">
-          {/* Poza de fundal importata din folderul public */}
           <div className="absolute inset-0 w-full h-full opacity-40 pointer-events-none">
             <Image
               src="/hero-cake.jpg"
@@ -61,11 +58,7 @@ export default function Home() {
               className="object-cover object-center"
             />
           </div>
-          
-          {/* Overlay de degrade pentru contrast text mărit */}
           <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent z-0" />
-          
-          {/* Efect de lumina ambientala roz */}
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-pink-500/20 blur-3xl rounded-full pointer-events-none" />
           
           <div className="relative z-10 max-w-3xl mx-auto">
@@ -78,10 +71,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Vitrina digitala cu prăjituri extrase din Neon PostgreSQL */}
+        {/* Vitrina digitala cu prăjituri */}
         <section className="max-w-7xl mx-auto px-6 py-12">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-8 border-b pb-4 border-pink-100">
-            🍰 Prăjituri și Torturi Artizanale
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-8 border-b pb-4 border-pink-100 flex items-center gap-2">
+            <span>🍰</span> Prăjituri și Torturi Artizanale
           </h2>
 
           {incarcare && (
@@ -138,7 +131,66 @@ export default function Home() {
 
         {/* Secțiunea Hi-Tech carusel */}
         <TechDeals />
+
+        {/* NOU: Secțiune de Recenzii de la clienți */}
+        <section className="max-w-7xl mx-auto px-6 py-16 bg-pink-50/30 rounded-3xl my-12">
+          <h2 className="text-3xl font-extrabold text-center text-gray-950 mb-10">Ce spun clienții noștri 😍</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { nume: "Elena R.", text: "Tortul Kinder comandat pentru nuntă a fost spectaculos! Toți invitații au întrebat de unde l-am luat.", stele: "⭐⭐⭐⭐⭐" },
+              { nume: "Paul G.", text: "Combinația de laborator tradițional cu imprimante 3D alimentare sună SF, dar gustul este incredibil.", stele: "⭐⭐⭐⭐⭐" },
+              { nume: "Andreea M.", text: "Amandinele insiropate exact ca în copilărie. Recomand din tot sufletul Dulce Gust!", stele: "⭐⭐⭐⭐⭐" }
+            ].map((r, i) => (
+              <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-pink-100/30">
+                <div className="text-pink-500 mb-2">{r.stele}</div>
+                <p className="text-sm text-gray-600 italic">"{r.text}"</p>
+                <h4 className="mt-4 font-bold text-gray-900 text-right text-xs">- {r.nume}</h4>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* NOU: Secțiune Abonare Newsletter */}
+        <section className="max-w-4xl mx-auto px-6 py-12 text-center bg-gradient-to-r from-pink-600 to-rose-500 rounded-3xl my-12 text-white shadow-lg">
+          <h3 className="text-2xl font-black">Primește oferte dulci & tehnologice! 🎁</h3>
+          <p className="text-sm text-pink-100 mt-2">Abonează-te la newsletter și primești 10% reducere la prima comandă de torturi.</p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input type="email" placeholder="Adresa ta de email..." className="px-4 py-3 rounded-xl text-gray-900 w-full text-sm outline-none focus:ring-2 focus:ring-pink-300" />
+            <button className="bg-gray-950 hover:bg-gray-900 px-6 py-3 rounded-xl font-bold text-sm transition shrink-0">Mă abonez</button>
+          </div>
+        </section>
       </main>
-    </>
-  );
-}
+
+      {/* NOU: Structură completă de FOOTER profesional */}
+      <footer className="bg-gray-950 text-gray-400 pt-16 pb-8 px-6 border-t border-gray-900">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          <div>
+            <h3 className="text-white text-xl font-black tracking-tight">Dulce<span className="text-pink-500">Gust</span></h3>
+            <p className="text-xs mt-4 leading-relaxed">Laborator artizanal premium unde dulciurile tradiționale sunt optimizate cu tehnologie de ultimă generație pentru un gust memorabil.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Program Laborator</h4>
+            <ul className="text-xs space-y-2">
+              <li>Luni - Vineri: 08:00 - 20:00</li>
+              <li>Sâmbătă: 09:00 - 18:00</li>
+              <li>Duminică: 10:00 - 15:00</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Linkuri Utile</h4>
+            <ul className="text-xs space-y-2">
+              <li className="hover:text-pink-400 transition cursor-pointer">Politica de Confidențialitate</li>
+              <li className="hover:text-pink-400 transition cursor-pointer">Termeni și Condiții</li>
+              <li className="hover:text-pink-400 transition cursor-pointer">ANPC / Litigii</li>
+              <li className="hover:text-pink-400 transition cursor-pointer">Contact & Locație</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Contact Direct</h4>
+            <ul className="text-xs space-y-2">
+              <li>📞 Telefon: 0722 000 000</li>
+              <li>✉️ Email: contact@dulcegust.ro</li>
+              <li>📍 Adresă: Str. Dulce nr. 10, Iași, România</li>
+            </ul>
+          </div>
+        </div>
