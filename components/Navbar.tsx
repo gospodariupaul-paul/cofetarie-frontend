@@ -27,13 +27,14 @@ export default function Navbar() {
       setUser(JSON.parse(storedUser));
     }
   }, []);
-
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "register" && !agreeTerms) return;
     
     setMesaj({ text: "Se procesează...", tip: "info" });
-    const endpoint = modalType === "login" ? "/api/auth/login" : "/api/auth/register";
+    
+    // Corecție pentru rutele standard Express din cofetarie-backend
+    const endpoint = modalType === "login" ? "/api/login" : "/api/register";
 
     try {
       const res = await fetch(`${API_URL}${endpoint}`, {
