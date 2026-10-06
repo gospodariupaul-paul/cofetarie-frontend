@@ -5,7 +5,7 @@ import { useCart } from "@/context/CartContext";
 
 export default function Navbar() {
   const { cartCount } = useCart();
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; name?: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
@@ -20,20 +20,18 @@ export default function Navbar() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
-  // Verificăm la pornire dacă există un utilizator real autentificat în browser
   useEffect(() => {
     const storedUser = localStorage.getItem("user_real");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "register" && !agreeTerms) return;
     
     setMesaj({ text: "Se procesează...", tip: "info" });
-    
-    // Corecție pentru rutele standard Express din cofetarie-backend
     const endpoint = modalType === "login" ? "/api/login" : "/api/register";
 
     try {
@@ -50,7 +48,7 @@ export default function Navbar() {
       }
 
       if (modalType === "login") {
-        const loggedUser = { email: data.user?.email || email };
+        const loggedUser = { email: data.user?.email || email, name: data.user?.name };
         localStorage.setItem("user_real", JSON.stringify(loggedUser));
         localStorage.setItem("token_real", data.token);
         setUser(loggedUser);
@@ -70,6 +68,7 @@ export default function Navbar() {
     localStorage.removeItem("token_real");
     setUser(null);
     setActiveDropdown(null);
+    setIsSidebarOpen(false);
   };
 
   return (
@@ -117,14 +116,10 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          {/* Zona Dreapta: Navigare, Autentificare și Interfețe Dropdown */}
+          {/* Zona Dreapta: Navigare și Interfețe Dropdown */}
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <ul className="hidden lg:flex gap-6 items-center font-medium">
-              <li 
-                onClick={() => window.location.reload()} 
-                className="cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 hover:text-white transition active:scale-95"
-                title="Acasă"
-              >
+              <li onClick={() => window.location.reload()} className="cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 hover:text-white transition active:scale-95">
                 <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                 </svg>
@@ -133,7 +128,7 @@ export default function Navbar() {
             </ul>
 
             <div className="flex items-center gap-4 relative">
-              {/* NOU: Iconiță Coș de cumpărături conectată live */}
+              {/* Iconiță Coș de cumpărături conectată live */}
               <div className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 transition">
                 <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -170,7 +165,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* POP-UP MODAL COMPLEX DE AUTENTIFICARE DULCE GUST */}
+      {/* MODAL AUTENTIFICARE */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative animate-in zoom-in-95 duration-200 text-gray-800">
@@ -202,7 +197,7 @@ export default function Navbar() {
               {modalType === "register" && (
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="terms" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="rounded text-pink-600 focus:ring-pink-500" />
-                  <label htmlFor="terms" className="text-xs text-gray-500">Sunt de acord cu Termenii și Condițiile</label>
+                  <label htmlFor="terms" className="text-xs text-gray-500">Sunt de acord cu Termenii</label>
                 </div>
               )}
               <button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs py-3.5 rounded-xl transition shadow-md mt-2">
@@ -213,26 +208,38 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Răspuns structural pentru Sidebar */}
+      {/* NOU: MENIU HAMBURGER PREMIUM ȘI COMPLEX */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm z-50 flex animate-in fade-in duration-200">
-          <div className="w-64 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800 animate-in slide-in-from-left duration-200">
+        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex animate-in fade-in duration-300">
+          <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 animate-in slide-in-from-left duration-300 relative overflow-hidden">
+            
+            {/* Design fundal decorativ interior */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl pointer-events-none" />
+
             <div>
-              <div className="flex justify-between items-center pb-4 border-b">
-                <span className="font-black text-pink-600 text-lg">Meniu Navigare</span>
-                <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+              {/* Header Branding Menu */}
+              <div className="p-6 bg-gradient-to-r from-pink-600 to-rose-500 text-white flex justify-between items-center shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-white text-pink-600 flex items-center justify-center text-lg font-black shadow-sm">🧁</div>
+                  <div>
+                    <h4 className="font-black text-sm tracking-tight leading-none">DulceGust</h4>
+                    <span className="text-[10px] text-pink-100 font-medium">Premium Laborator</span>
+                  </div>
+                </div>
+                <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition text-white/80 hover:text-white font-bold text-sm">✕</button>
               </div>
-              <ul className="mt-6 space-y-4 font-bold text-sm">
-                <li onClick={() => { setIsSidebarOpen(false); window.location.reload(); }} className="hover:text-pink-600 cursor-pointer transition">🏠 Acasă</li>
-                <li className="hover:text-pink-600 cursor-pointer transition">🍰 Produse din Vitrină</li>
-                <li className="hover:text-pink-600 cursor-pointer transition">📞 Contact Laborator</li>
-              </ul>
-            </div>
-            <p className="text-[10px] text-gray-400 font-bold text-center">DulceGust v1.1 Producție</p>
-          </div>
-          <div className="flex-1" onClick={() => setIsSidebarOpen(false)} />
-        </div>
-      )}
-    </>
-  );
-}
+
+              {/* Zonă Dinamică Utilizator în Sidebar */}
+              <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                {user ? (
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="h-9 w-9 rounded-full bg-pink-100 text-pink-600 font-bold text-xs flex items-center justify-center shrink-0">👤</div>
+                    <div className="truncate flex-1">
+                      <p className="text-xs font-black text-gray-900 truncate">{user.name || "Client"}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <button onClick={handleDeconectare} className="text-[10px] font-bold text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100/50 transition">Ieșire</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between w-full gap-3 py-1">
+                    <p className="text-xs font-medium text-gray-500">Vizitator anonim</p>
