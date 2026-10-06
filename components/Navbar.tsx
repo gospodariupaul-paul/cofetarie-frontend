@@ -11,7 +11,6 @@ export default function Navbar() {
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<"favorites" | "notifications" | "profile" | null>(null);
 
-  // Formular date
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +43,7 @@ export default function Navbar() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "A apărut o eroare la autentificare.");
+        throw new Error(data.message || "A apărut o eroare.");
       }
 
       if (modalType === "login") {
@@ -52,10 +51,10 @@ export default function Navbar() {
         localStorage.setItem("user_real", JSON.stringify(loggedUser));
         localStorage.setItem("token_real", data.token);
         setUser(loggedUser);
-        setMesaj({ text: "Te-ai conectat cu succes! 🎉", tip: "succes" });
+        setMesaj({ text: "Te-ai conectat! 🎉", tip: "succes" });
         setTimeout(() => { setModalType(null); setMesaj({ text: "", tip: "" }); }, 1500);
       } else {
-        setMesaj({ text: "Cont creat! Acum te poți conecta. ✨", tip: "succes" });
+        setMesaj({ text: "Cont creat! Te poți conecta. ✨", tip: "succes" });
         setModalType("login");
       }
     } catch (err: any) {
@@ -76,7 +75,6 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 bg-pink-600/90 backdrop-blur-md text-white shadow-md transition-all">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 justify-between items-center">
           
-          {/* Zona Stânga: Hamburger Menu + Siglă Complexă */}
           <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
               <button 
@@ -102,8 +100,6 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-
-          {/* Zona Mijloc: Caseta Căutare */}
           <div className="relative w-full max-w-xs">
             <input
               type="text"
@@ -116,7 +112,7 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          {/* Zona Dreapta: Navigare și Interfețe Dropdown */}
+
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <ul className="hidden lg:flex gap-6 items-center font-medium">
               <li onClick={() => window.location.reload()} className="cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 hover:text-white transition active:scale-95">
@@ -128,7 +124,6 @@ export default function Navbar() {
             </ul>
 
             <div className="flex items-center gap-4 relative">
-              {/* Iconiță Coș de cumpărături conectată live */}
               <div className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 transition">
                 <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -150,7 +145,7 @@ export default function Navbar() {
                       👤 {user.email}
                     </button>
                     {activeDropdown === "profile" && (
-                      <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl p-3 shadow-2xl border border-pink-100 text-gray-800 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl p-3 shadow-2xl border border-pink-100 text-gray-800 z-50">
                         <p className="text-[10px] text-gray-400 font-bold px-3 uppercase tracking-wider">Conectat ca</p>
                         <p className="text-xs font-bold text-gray-900 px-3 truncate pb-2 border-b border-gray-50">{user.email}</p>
                         <button className="w-full text-left text-xs font-medium text-gray-600 hover:text-pink-600 px-3 py-2.5 rounded-xl hover:bg-pink-50/50 mt-2 transition">📦 Istoric Comenzi</button>
@@ -165,10 +160,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MODAL AUTENTIFICARE */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative animate-in zoom-in-95 duration-200 text-gray-800">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800">
             <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm">✕</button>
             <h3 className="text-xl font-black text-center mb-6">{modalType === "login" ? "Conectare Cont" : "Creare Cont Nou"}</h3>
 
@@ -207,17 +201,11 @@ export default function Navbar() {
           </div>
         </div>
       )}
-
-      {/* NOU: MENIU HAMBURGER PREMIUM ȘI COMPLEX */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex animate-in fade-in duration-300">
-          <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 animate-in slide-in-from-left duration-300 relative overflow-hidden">
-            
-            {/* Design fundal decorativ interior */}
+        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex">
+          <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl pointer-events-none" />
-
             <div>
-              {/* Header Branding Menu */}
               <div className="p-6 bg-gradient-to-r from-pink-600 to-rose-500 text-white flex justify-between items-center shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-white text-pink-600 flex items-center justify-center text-lg font-black shadow-sm">🧁</div>
@@ -229,7 +217,6 @@ export default function Navbar() {
                 <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition text-white/80 hover:text-white font-bold text-sm">✕</button>
               </div>
 
-              {/* Zonă Dinamică Utilizator în Sidebar */}
               <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                 {user ? (
                   <div className="flex items-center gap-3 w-full">
@@ -243,3 +230,45 @@ export default function Navbar() {
                 ) : (
                   <div className="flex items-center justify-between w-full gap-3 py-1">
                     <p className="text-xs font-medium text-gray-500">Vizitator anonim</p>
+                    <button onClick={() => { setIsSidebarOpen(false); setModalType("login"); }} className="bg-pink-600 text-white font-bold text-[10px] px-3 py-2 rounded-lg hover:bg-pink-700 transition shadow">Conectare</button>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">Navigare Principală</p>
+                <ul className="space-y-1">
+                  <li onClick={() => { setIsSidebarOpen(false); window.location.reload(); }} className="flex items-center justify-between p-3 rounded-xl hover:bg-pink-50/50 text-gray-700 hover:text-pink-600 font-bold text-xs transition cursor-pointer group">
+                    <span className="flex items-center gap-3">🏠 Acasă</span>
+                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-normal group-hover:bg-pink-100 group-hover:text-pink-600">Main</span>
+                  </li>
+                  <li className="flex items-center justify-between p-3 rounded-xl hover:bg-pink-50/50 text-gray-700 hover:text-pink-600 font-bold text-xs transition cursor-pointer group">
+                    <span className="flex items-center gap-3">🍰 Vitrina de Produse</span>
+                    <span className="text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded font-bold animate-pulse">Nou!</span>
+                  </li>
+                  <li className="flex items-center justify-between p-3 rounded-xl hover:bg-pink-50/50 text-gray-700 hover:text-pink-600 font-bold text-xs transition cursor-pointer group">
+                    <span className="flex items-center gap-3">📞 Contact Laborator</span>
+                    <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded font-medium">Activ</span>
+                  </li>
+                </ul>
+
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mt-6 mb-2">Comunitate & Social</p>
+                <div className="grid grid-cols-2 gap-2 px-2">
+                  <a href="https://instagram.com" target="_blank" className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-gray-100 bg-gray-50 hover:bg-pink-50/30 text-xs font-medium text-gray-600 hover:text-pink-600 transition">📸 Instagram</a>
+                  <a href="https://facebook.com" target="_blank" className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-gray-100 bg-gray-50 hover:bg-blue-50/30 text-xs font-medium text-gray-600 hover:text-blue-600 transition">🔵 Facebook</a>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 text-center">
+              <p className="text-[11px] font-bold text-gray-800">📍 Str. Dulce nr. 10, Iași</p>
+              <p className="text-[10px] text-gray-400 font-medium mt-1">Suport: 0722 000 000</p>
+              <div className="mt-4 pt-4 border-t border-gray-200/60 text-[9px] font-bold text-gray-400 tracking-widest uppercase">DulceGust v1.2 OS</div>
+            </div>
+          </div>
+          <div className="flex-1" onClick={() => setIsSidebarOpen(false)} />
+        </div>
+      )}
+    </>
+  );
+}
