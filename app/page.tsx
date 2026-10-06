@@ -82,14 +82,16 @@ export default function Home() {
           </section>
 
           {/* Secțiunea de Statistici / Cifrele Noastre */}
+                    {/* Secțiunea de Statistici / Cifrele Noastre - Actualizată cu Iconițe */}
           <section className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center my-6">
             {[
-              { cifra: "15,000+", desc: "Clienți Fericiți" },
-              { cifra: "45+", desc: "Rețete Unice" },
-              { cifra: "100%", desc: "Ingrediente Naturale" },
-              { cifra: "3D Tech", desc: "Design Culinar" }
+              { icon: "💝", cifra: "15,000+", desc: "Clienți Fericiți" },
+              { icon: "📜", cifra: "45+", desc: "Rețete Unice" },
+              { icon: "🌿", cifra: "100%", desc: "Ingrediente Naturale" },
+              { icon: "🚀", cifra: "3D Tech", desc: "Design Culinar" }
             ].map((stat, i) => (
               <div key={i} className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-pink-100/40 shadow-sm hover:scale-105 transition-all duration-300">
+                <div className="text-2xl mb-2">{stat.icon}</div>
                 <p className="text-3xl font-black text-pink-600">{stat.cifra}</p>
                 <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{stat.desc}</p>
               </div>
