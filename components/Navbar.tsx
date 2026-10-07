@@ -145,11 +145,39 @@ export default function Navbar() {
                       👤 {user.email}
                     </button>
                     {activeDropdown === "profile" && (
-                      <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl p-3 shadow-2xl border border-pink-100 text-gray-800 z-50">
-                        <p className="text-[10px] text-gray-400 font-bold px-3 uppercase tracking-wider">Conectat ca</p>
-                        <p className="text-xs font-bold text-gray-900 px-3 truncate pb-2 border-b border-gray-50">{user.email}</p>
-                        <button className="w-full text-left text-xs font-medium text-gray-600 hover:text-pink-600 px-3 py-2.5 rounded-xl hover:bg-pink-50/50 mt-2 transition">📦 Istoric Comenzi</button>
-                        <button onClick={handleDeconectare} className="w-full text-left text-xs font-bold text-red-600 px-3 py-2.5 rounded-xl hover:bg-red-50 transition mt-1">🚪 Deconectare</button>
+                      <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl p-4 shadow-2xl border border-pink-100 text-gray-800 z-50">
+                        <div className="pb-3 border-b border-gray-100">
+                          <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider">Conectat ca</p>
+                          <p className="text-xs font-black text-gray-900 truncate mt-0.5">{user.name || "Client"}</p>
+                          <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
+                        </div>
+
+                        <div className="my-3 p-2.5 bg-pink-50/50 rounded-xl border border-pink-100/30 flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-gray-600">🧁 DulcePoints:</span>
+                          <span className="text-xs font-black text-pink-600 bg-white px-2 py-0.5 rounded-md border border-pink-100 shadow-sm">120 puncte</span>
+                        </div>
+
+                        <div className="space-y-0.5">
+                          <button className="w-full text-left text-xs font-bold text-gray-700 hover:text-pink-600 px-3 py-2.5 rounded-xl hover:bg-pink-50/50 transition flex items-center gap-2.5 group">
+                            <span className="text-sm group-hover:scale-110 transition-transform">📦</span>
+                            <span>Istoric Comenzi</span>
+                          </button>
+                          
+                          <button className="w-full text-left text-xs font-bold text-gray-700 hover:text-pink-600 px-3 py-2.5 rounded-xl hover:bg-pink-50/50 transition flex items-center gap-2.5 group">
+                            <span className="text-sm group-hover:scale-110 transition-transform">⚙️</span>
+                            <span>Setări Cont & Adrese</span>
+                          </button>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <button 
+                            onClick={handleDeconectare} 
+                            className="w-full text-left text-xs font-black text-red-600 px-3 py-2.5 rounded-xl hover:bg-red-50 transition flex items-center gap-2.5 group"
+                          >
+                            <span className="text-sm group-hover:translate-x-0.5 transition-transform">🚪</span>
+                            <span>Deconectare Securizată</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -159,7 +187,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800">
@@ -201,6 +228,7 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex">
           <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 relative overflow-hidden">
