@@ -33,8 +33,8 @@ export default function AdminDashboard() {
   const [numeProdus, setNumeProdus] = useState("");
   const [descriereProdus, setDescriereProdus] = useState("");
   const [pretProdus, setPretProdus] = useState("");
-  const [categorieProdus, setCategorieProdus] = useState("prajituri");
-  const [iconProdus, setIconProdus] = useState("🧁");
+  const [categorieProdus, setCategorieProdus] = useState("torturi");
+  const [imagineBase64, setImagineBase64] = useState(""); // NOU: Stocare imagine format text
   const [tagProdus, setTagProdus] = useState("");
   const [seTrimite, setSeTrimite] = useState(false);
 
@@ -56,7 +56,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Funcție pentru a reîncărca datele din Neon
   const incarcaDateleAdmin = async () => {
     try {
       const resProd = await fetch(`${API_URL}/api/produse`);
@@ -81,7 +80,24 @@ export default function AdminDashboard() {
     incarcaDateleAdmin();
   }, [esteAdmin, API_URL]);
 
-  // Trimite produsul nou în serverul Express și baza de date Neon
+  // NOU: Conversie fișier foto local în string Base64 pentru baza de date
+  const handleImagineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fisier = e.target.files?.[0];
+    if (fisier) {
+      const cititor = new FileReader();
+      let MarimeFisierKiloBytes = fisier.size / 1024;
+      if (MarimeFisierKiloBytes > 1500) {
+        alert("Imaginea este prea mare! Alege o poză de maximum 1.5 MB.");
+        e.target.value = "";
+        return;
+      }
+      cititor.onloadend = () => {
+        setImagineBase64(cititor.result as string);
+      };
+      cititor.readAsDataURL(fisier);
+    }
+  };
+
   const handleAdaugaProdus = async (e: React.FormEvent) => {
     e.preventDefault();
     setSeTrimite(true);
@@ -95,7 +111,7 @@ export default function AdminDashboard() {
           description: descriereProdus,
           price: parseFloat(pretProdus),
           category: categorieProdus,
-          icon: iconProdus,
+          icon: imagineBase64 || "🧁", // Trimitem imaginea reală convertită
           tag: tagProdus || undefined,
         }),
       });
@@ -104,15 +120,14 @@ export default function AdminDashboard() {
         throw new Error("Serverul backend a respins adăugarea produsului.");
       }
 
-      alert("Produsul a fost încărcat cu succes și este live pe site! 🎉");
+      alert("Produsul cu imagine a fost încărcat cu succes în Neon! 🎉");
       
-      // Resetăm câmpurile din formular
       setNumeProdus("");
       setDescriereProdus("");
       setPretProdus("");
       setTagProdus("");
+      setImagineBase64("");
       
-      // Reîmprospătăm lista de produse local
       incarcaDateleAdmin();
     } catch (err: any) {
       alert(`Eroare: ${err.message}. Verifică dacă ai ruta POST configurată în backend.`);
@@ -179,10 +194,10 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Zona Principală Layout split */}
+        {/* Zona Principală Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* NOU: Formularul de Încărcat Produse Noi */}
+          {/* Formularul de Încărcat Produse Noi actualizat cu Incarcare Imagine */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm">
             <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
               <span>➕</span> Încarcă Produs Nou
@@ -196,21 +211,32 @@ export default function AdminDashboard() {
                 <label className="text-[10px] text-gray-400 uppercase block mb-1">Descriere</label>
                 <textarea required value={descriereProdus} onChange={(e) => setDescriereProdus(e.target.value)} rows={2} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500 resize-none" placeholder="Ingrediente, blat, compoziție..." />
               </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Preț (LEI)</label>
                   <input type="number" required value={pretProdus} onChange={(e) => setPretProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500" placeholder="140" />
                 </div>
+                {/* MODIFICAT: Buton profesional pentru selectat poze reale de pe telefon/PC */}
                 <div>
-                  <label className="text-[10px] text-gray-400 uppercase block mb-1">Iconiță / Emoji</label>
-                  <select value={iconProdus} onChange={(e) => setIconProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500">
-                    <option value="🎂">🎂 Tort</option>
-                    <option value="🧁">🧁 Prăjitură</option>
-                    <option value="🍩">🍩 Gogoașă</option>
-                    <option value="🍫">🍫 Ciocolată</option>
-                  </select>
+                  <label className="text-[10px] text-gray-400 uppercase block mb-1">Imagine Produs (Foto)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImagineChange}
+                    className="w-full bg-gray-950 border border-gray-800 text-gray-400 rounded-xl px-3 py-2.5 outline-none focus:border-pink-500 text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-pink-600 file:text-white hover:file:bg-pink-700 file:cursor-pointer" 
+                  />
                 </div>
               </div>
+
+              {/* Prevualizare imagine selectată în timp real */}
+              {imagineBase64 && (
+                <div className="mt-2 p-2 bg-gray-950 border border-gray-800 rounded-xl flex items-center gap-3">
+                  <img src={imagineBase64} alt="Preview" className="w-12 h-12 object-cover rounded-lg border border-gray-800 shadow" />
+                  <span className="text-[10px] text-green-400 font-bold">✓ Imagine procesată cu succes!</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Categorie</label>
@@ -225,7 +251,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <button type="submit" disabled={seTrimite} className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-800 text-white font-black py-3 rounded-xl transition shadow-md mt-2">
-                {seTrimite ? "Se încarcă în Neon..." : "🚀 Pune Produsul pe Site"}
+                {seTrimite ? "Se salvează în Neon..." : "🚀 Pune Produsul pe Site"}
               </button>
             </form>
           </div>
@@ -271,7 +297,13 @@ export default function AdminDashboard() {
                 {produse.map((p) => (
                   <div key={p.id} className="bg-gray-950 border border-gray-800/60 p-3 rounded-xl flex justify-between items-center text-xs font-bold">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{p.icon || "🧁"}</span>
+                      <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden border border-gray-800">
+                        {p.icon && p.icon.startsWith("data:image") ? (
+                          <img src={p.icon} alt={p.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-base">{p.icon || "🧁"}</span>
+                        )}
+                      </div>
                       <div>
                         <p className="text-white">{p.name}</p>
                         <span className="text-[9px] text-pink-500 uppercase tracking-widest mt-0.5 block">{p.category}</span>
@@ -281,14 +313,3 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="mt-6 pt-4 border-t border-gray-800 text-center text-[10px] font-bold text-gray-600 tracking-wider">
-              DULCEGUST METRICS CORE v1.2
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-}
