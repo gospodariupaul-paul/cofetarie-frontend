@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   const [descriereProdus, setDescriereProdus] = useState("");
   const [pretProdus, setPretProdus] = useState("");
   const [categorieProdus, setCategorieProdus] = useState("torturi");
-  const [imagineBase64, setImagineBase64] = useState(""); // NOU: Stocare imagine format text
+  const [imagineBase64, setImagineBase64] = useState("");
   const [tagProdus, setTagProdus] = useState("");
   const [seTrimite, setSeTrimite] = useState(false);
 
@@ -79,8 +79,6 @@ export default function AdminDashboard() {
     if (!esteAdmin) return;
     incarcaDateleAdmin();
   }, [esteAdmin, API_URL]);
-
-  // NOU: Conversie fișier foto local în string Base64 pentru baza de date
   const handleImagineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fisier = e.target.files?.[0];
     if (fisier) {
@@ -111,7 +109,7 @@ export default function AdminDashboard() {
           description: descriereProdus,
           price: parseFloat(pretProdus),
           category: categorieProdus,
-          icon: imagineBase64 || "🧁", // Trimitem imaginea reală convertită
+          icon: imagineBase64 || "🧁",
           tag: tagProdus || undefined,
         }),
       });
@@ -159,12 +157,12 @@ export default function AdminDashboard() {
       </div>
     );
   }
+
   const totalIncasat = comenzi.reduce((sum, c) => sum + (c.totalAmount || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Header Dashboard */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-800 pb-6 mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-black text-white">Admin Dashboard 📊</h1>
@@ -176,7 +174,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Panou Statistici (KPI) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦", culoare: "text-blue-500" },
@@ -193,11 +190,7 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
-
-        {/* Zona Principală Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Formularul de Încărcat Produse Noi actualizat cu Incarcare Imagine */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm">
             <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
               <span>➕</span> Încarcă Produs Nou
@@ -217,7 +210,6 @@ export default function AdminDashboard() {
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Preț (LEI)</label>
                   <input type="number" required value={pretProdus} onChange={(e) => setPretProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500" placeholder="140" />
                 </div>
-                {/* MODIFICAT: Buton profesional pentru selectat poze reale de pe telefon/PC */}
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Imagine Produs (Foto)</label>
                   <input 
@@ -229,11 +221,10 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Prevualizare imagine selectată în timp real */}
               {imagineBase64 && (
                 <div className="mt-2 p-2 bg-gray-950 border border-gray-800 rounded-xl flex items-center gap-3">
                   <img src={imagineBase64} alt="Preview" className="w-12 h-12 object-cover rounded-lg border border-gray-800 shadow" />
-                  <span className="text-[10px] text-green-400 font-bold">✓ Imagine procesată cu succes!</span>
+                  <span className="text-[10px] text-green-400 font-bold">✓ Imagine procesată!</span>
                 </div>
               )}
 
@@ -256,7 +247,6 @@ export default function AdminDashboard() {
             </form>
           </div>
 
-          {/* Tabelul de Comenzi Live */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm">
             <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
               <span>🛒</span> Flux Comenzi Recente
@@ -287,7 +277,6 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Listă Produse Active din Meniu */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
             <div>
               <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
@@ -313,3 +302,13 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="mt-6 pt-4 border-t border-gray-800 text-center text-[10px] font-bold text-gray-600 tracking-wider">
+              DULCEGUST METRICS CORE v1.2
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
