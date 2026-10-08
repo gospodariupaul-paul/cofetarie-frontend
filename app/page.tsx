@@ -19,8 +19,6 @@ export default function Home() {
   const [produse, setProduse] = useState<Produs[]>([]);
   const [incarcare, setIncarcare] = useState<boolean>(true);
   const [eroare, setEroare] = useState<string | null>(null);
-  
-  // Statut pentru filtrarea interactivă: "toate", "torturi", "prajituri"
   const [categorieActiva, setCategorieActiva] = useState<string>("toate");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
@@ -44,9 +42,8 @@ export default function Home() {
     incarcaDatele();
   }, [API_URL]);
 
-  // Filtrarea dinamică a produselor alimentare pe baza butonului selectat
   const produseFiltrate = produse.filter((p) => {
-    if (p.category === "tech-deals") return false; // Excludem gadgeturile de aici
+    if (p.category === "tech-deals") return false;
     if (categorieActiva === "toate") return true;
     return p.category.toLowerCase() === categorieActiva.toLowerCase();
   });
@@ -76,13 +73,12 @@ export default function Home() {
                 Cofetăria <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-300">Dulce Gust</span>
               </h1>
               <p className="mt-6 text-lg md:text-xl text-gray-200 font-medium">
-                Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru momente de neuitat.
+                Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru moments de neuitat.
               </p>
             </div>
           </section>
 
-          {/* Secțiunea de Statistici / Cifrele Noastre */}
-                    {/* Secțiunea de Statistici / Cifrele Noastre - Actualizată cu Iconițe */}
+          {/* Secțiunea de Statistici */}
           <section className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center my-6">
             {[
               { icon: "💝", cifra: "15,000+", desc: "Clienți Fericiți" },
@@ -98,14 +94,13 @@ export default function Home() {
             ))}
           </section>
 
-          {/* Vitrina digitala cu prăjituri + Filtre interactive */}
+          {/* Vitrina digitala cu prăjituri */}
           <section className="max-w-7xl mx-auto px-6 py-12">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 border-b pb-4 border-pink-100 gap-4">
               <h2 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
                 <span>🍰</span> Vitrina Noastră Digitală
               </h2>
               
-              {/* Butoanele interactive de filtrare */}
               <div className="flex bg-pink-50/60 p-1.5 rounded-xl border border-pink-100 self-start md:self-auto shadow-inner">
                 {[
                   { id: "toate", label: "Toate produsele" },
@@ -116,9 +111,7 @@ export default function Home() {
                     key={btn.id}
                     onClick={() => setCategorieActiva(btn.id)}
                     className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
-                      categorieActiva === btn.id
-                        ? "bg-pink-600 text-white shadow"
-                        : "text-gray-600 hover:text-pink-600"
+                      categorieActiva === btn.id ? "bg-pink-600 text-white shadow" : "text-gray-600 hover:text-pink-600"
                     }`}
                   >
                     {btn.label}
@@ -152,8 +145,13 @@ export default function Home() {
                     className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between"
                   >
                     <div>
-                      <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-                        <span>{produs.icon || "🧁"}</span>
+                      {/* MODIFICAT: Aici este containerul dinamic de imagine reparat! */}
+                      <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                        {produs.icon && produs.icon.startsWith("data:image") ? (
+                          <img src={produs.icon} alt={produs.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-5xl">{produs.icon || "🧁"}</span>
+                        )}
                         {produs.tag && (
                           <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border text-pink-600 shadow-sm animate-pulse">
                             {produs.tag}
@@ -202,7 +200,7 @@ export default function Home() {
           {/* Secțiunea Hi-Tech carusel */}
           <TechDeals />
 
-          {/* Secțiune de Recenzii de la clienți */}
+          {/* Secțiune de Recenzii */}
           <section className="max-w-7xl mx-auto px-6 py-16 bg-pink-50/30 rounded-3xl my-12">
             <h2 className="text-3xl font-extrabold text-center text-gray-950 mb-10">Ce spun clienții noștri 😍</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -232,7 +230,7 @@ export default function Home() {
         </main>
       </div>
 
-      {/* Structură completă de FOOTER profesional */}
+      {/* Footer profesional */}
       <footer className="bg-gray-950 text-gray-400 pt-16 pb-8 px-6 border-t border-gray-900 mt-12">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div>
