@@ -52,7 +52,6 @@ export default function AdminDashboard() {
       alert("Cod de acces incorect!");
     }
   };
-
   useEffect(() => {
     if (localStorage.getItem("role_admin") === "true") {
       setEsteAdmin(true);
@@ -82,6 +81,7 @@ export default function AdminDashboard() {
     if (!esteAdmin) return;
     incarcaDateleAdmin();
   }, [esteAdmin, API_URL]);
+
   const handleImagineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fisier = e.target.files?.[0];
     if (fisier) {
@@ -97,8 +97,6 @@ export default function AdminDashboard() {
       cititor.readAsDataURL(fisier);
     }
   };
-
-  // Când dai click pe o căsuță, datele se încarcă direct în formular
   const handleSelecteazaProdusPentruEditare = (p: Produs) => {
     setIdProdusEditat(p.id);
     setNumeProdus(p.name);
@@ -153,7 +151,7 @@ export default function AdminDashboard() {
   };
 
   const handleStergeProdus = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Previne declanșarea editării când apeși pe iconița de ștergere
+    e.stopPropagation();
     if (!confirm("Sigur vrei să ștergi definitiv acest produs din baza de date Neon?")) return;
 
     try {
@@ -166,7 +164,6 @@ export default function AdminDashboard() {
       alert(`Eroare la ștergere: ${err.message}`);
     }
   };
-
   if (!esteAdmin) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
@@ -192,10 +189,10 @@ export default function AdminDashboard() {
   }
 
   const totalIncasat = comenzi.reduce((sum, c) => sum + (c.totalAmount || 0), 0);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-800 pb-6 mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-black text-white">Admin Dashboard 📊</h1>
@@ -207,7 +204,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Panou Statistici */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦", culoare: "text-blue-500" },
@@ -224,11 +220,7 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
-
-        {/* Layout split */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Formular Modificabil */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-black text-white flex items-center gap-2">
@@ -288,7 +280,6 @@ export default function AdminDashboard() {
             </form>
           </div>
 
-          {/* Tabelul de Comenzi Live */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
             <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
               <span>🛒</span> Flux Comenzi Recente
@@ -319,7 +310,6 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Listă Produse Active - REPARATĂ: ACCEPTĂ CLICK ORIUNDE PE TOATĂ CĂSUȚA */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
             <div>
               <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
@@ -344,3 +334,33 @@ export default function AdminDashboard() {
                           <span className="text-base">{p.icon || "🧁"}</span>
                         )}
                       </div>
+                      <div className="truncate flex-1">
+                        <p className="text-white truncate">{p.name}</p>
+                        <span className="text-[9px] text-pink-500 uppercase tracking-widest mt-0.5 block">{p.category}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 shrink-0 ml-2">
+                      <p className="text-gray-300">{p.price} LEI</p>
+                      <button 
+                        onClick={(e) => handleStergeProdus(p.id, e)}
+                        className="p-2 bg-red-950/40 hover:bg-red-900 border border-red-900/50 hover:border-red-600 rounded-lg text-red-400 hover:text-white transition shadow-sm pointer-events-auto"
+                        title="Șterge definitiv"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-6 pt-4 border-t border-gray-800 text-center text-[10px] font-bold text-gray-600 tracking-wider">
+              DULCEGUST METRICS CORE v1.3
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
