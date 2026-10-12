@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
+import Link from "next/link";
 
 export default function Navbar() {
   const { cart, cartCount, cartTotal, removeFromCart, clearCart, addToCart } = useCart();
   const [user, setUser] = useState<{ email: string; name?: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false); // NOU: Statut deschidere pop-up coș
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<"favorites" | "notifications" | "profile" | null>(null);
 
@@ -18,9 +19,14 @@ export default function Navbar() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [mesaj, setMesaj] = useState({ text: "", tip: "" });
 
-  // Date trimitere comandă
   const [telefonComanda, setTelefonComanda] = useState("");
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
+
+  // Chat în interiorul Hamburgerului
+  const [mesajChat, setMesajChat] = useState("");
+  const [istoricChat, setIstoricChat] = useState<{ emitent: "user" | "suport"; text: string }[]>([
+    { emitent: "suport", text: "Bună! Cum te putem ajuta astăzi cu dulciurile noastre?" }
+  ]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
@@ -94,6 +100,23 @@ export default function Navbar() {
     }
   };
 
+  const trimiteMesajChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mesajChat.trim()) return;
+
+    const nouMesaj = { emitent: "user" as const, text: mesajChat };
+    setIstoricChat((prev) => [...prev, nouMesaj]);
+    setMesajChat("");
+
+    // Răspuns automat simulat de la cofetărie
+    setTimeout(() => {
+      setIstoricChat((prev) => [
+        ...prev,
+        { emitent: "suport", text: "Un operator de la laboratorul DulceGust va prelua mesajul tău în cel mai scurt timp!" }
+      ]);
+    }, 1200);
+  };
+
   const handleDeconectare = () => {
     localStorage.removeItem("user_real");
     localStorage.removeItem("token_real");
@@ -117,7 +140,7 @@ export default function Navbar() {
                 </svg>
               </button>
 
-              <div onClick={() => window.location.reload()} className="flex items-center gap-3 cursor-pointer group">
+              <Link href="/" className="flex items-center gap-3 cursor-pointer group">
                 <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-white to-pink-100 text-pink-600 shadow-md transition group-hover:scale-105 group-hover:rotate-3">
                   <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
                     <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h-2V5.73c-.6-.34-1-1-1-1.73a2 2 0 0 1 2-2z" fill="currentColor" className="text-pink-500" />
@@ -128,7 +151,7 @@ export default function Navbar() {
                 <span className="text-2xl font-extrabold tracking-tight text-white group-hover:text-pink-100 transition">
                   Dulce<span className="font-light text-pink-200">Gust</span>
                 </span>
-              </div>
+              </Link>
             </div>
           </div>
 
@@ -146,17 +169,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-            <ul className="hidden lg:flex gap-6 items-center font-medium">
-              <li onClick={() => window.location.reload()} className="cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 hover:text-white transition active:scale-95">
-                <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                </svg>
-              </li>
-              <li className="cursor-pointer hover:text-pink-200 transition">Produse</li>
-            </ul>
-
             <div className="flex items-center gap-4 relative">
-              {/* MODIFICAT INTERACTIV: La click pe coș se deschide pop-up-ul lateral */}
               <div 
                 onClick={() => setIsCartOpen(true)}
                 className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 transition active:scale-95"
@@ -187,16 +200,10 @@ export default function Navbar() {
                           <p className="text-xs font-black text-gray-900 truncate mt-0.5">{user.name || "Client"}</p>
                           <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
                         </div>
-
                         <div className="my-3 p-2.5 bg-pink-50/50 rounded-xl border border-pink-100/30 flex items-center justify-between">
                           <span className="text-[11px] font-bold text-gray-600">🧁 DulcePoints:</span>
                           <span className="text-xs font-black text-pink-600 bg-white px-2 py-0.5 rounded-md border border-pink-100 shadow-sm">120 puncte</span>
                         </div>
-
-                        <div className="space-y-0.5">
-                          <button className="w-full text-left text-xs font-bold text-gray-700 hover:text-pink-600 px-3 py-2.5 rounded-xl hover:bg-pink-50/50 transition">📦 Istoric Comenzi</button>
-                        </div>
-
                         <div className="mt-3 pt-3 border-t border-gray-100">
                           <button onClick={handleDeconectare} className="w-full text-left text-xs font-black text-red-600 px-3 py-2.5 rounded-xl hover:bg-red-50 transition">🚪 Deconectare Securizată</button>
                         </div>
@@ -209,7 +216,8 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-      {/* NOU: POP-UP LATERAL SENSATIONAL PENTRU COȘUL DE CUMPĂRĂTURI LIVE */}
+
+      {/* COȘ POP-UP LATERAL */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end animate-in fade-in duration-200">
           <div className="w-96 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800 animate-in slide-in-from-right duration-300">
@@ -218,59 +226,34 @@ export default function Navbar() {
                 <span className="font-black text-gray-950 text-base flex items-center gap-2">🛒 Coșul tău ({cartCount})</span>
                 <button onClick={() => setIsCartOpen(false)} className="text-gray-400 hover:text-gray-600 font-bold text-sm">✕</button>
               </div>
-
               <div className="mt-6 space-y-4 max-h-[400px] overflow-y-auto pr-1">
                 {cart.length === 0 ? (
-                  <p className="text-center text-xs font-bold text-gray-400 py-10">Coșul tău este complet gol. Adaugă prăjituri! 🧁</p>
+                  <p className="text-center text-xs font-bold text-gray-400 py-10">Coșul tău este gol. 🧁</p>
                 ) : (
                   cart.map((item) => (
                     <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs font-bold">
                       <div className="flex items-center gap-3">
-                        <span className="text-xl">{item.icon && item.icon.startsWith("data:image") ? "🍰" : (item.icon || "🧁")}</span>
+                        <span className="text-xl">🍰</span>
                         <div>
                           <p className="text-gray-900 font-black">{item.name}</p>
                           <p className="text-gray-400 text-[10px] mt-0.5">{item.price} LEI x {item.quantity}</p>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"
-                      >
-                        🗑️
-                      </button>
+                      <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition">🗑️</button>
                     </div>
                   ))
                 )}
               </div>
             </div>
-
             {cart.length > 0 && (
               <div className="border-t border-gray-100 pt-4 bg-white">
                 <div className="flex justify-between items-center font-black text-sm text-gray-950 mb-4 px-1">
                   <span>Total de plată:</span>
                   <span className="text-pink-600 text-lg">{cartTotal} LEI</span>
                 </div>
-
-                {/* Formular rapid de trimis comanda direct în Neon */}
                 <form onSubmit={handleTrimiteComandaNeon} className="space-y-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Număr Telefon pentru Livrare</label>
-                    <input 
-                      type="tel" 
-                      required 
-                      value={telefonComanda} 
-                      onChange={(e) => setTelefonComanda(e.target.value)} 
-                      placeholder="07xx xxx xxx" 
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-pink-500 font-bold" 
-                    />
-                  </div>
-                  <button 
-                    type="submit" 
-                    disabled={seTrimiteComanda}
-                    className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-200 text-white font-black py-3.5 rounded-xl transition shadow-lg text-xs"
-                  >
-                    {seTrimiteComanda ? "Se trimite în Neon..." : "🚀 Finalizează Comanda Transmisă"}
-                  </button>
+                  <input type="tel" required value={telefonComanda} onChange={(e) => setTelefonComanda(e.target.value)} placeholder="07xx xxx xxx" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-pink-500 font-bold" />
+                  <button type="submit" disabled={seTrimiteComanda} className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-200 text-white font-black py-3.5 rounded-xl transition text-xs shadow-lg">{seTrimiteComanda ? "Se trimite..." : "🚀 Finalizează Comanda"}</button>
                 </form>
               </div>
             )}
@@ -278,46 +261,14 @@ export default function Navbar() {
           <div className="flex-1" onClick={() => setIsCartOpen(false)} />
         </div>
       )}
-
-      {/* MODALE AUTENTIFICARE */}
-      {modalType && (
-        <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800">
-            <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm">✕</button>
-            <h3 className="text-xl font-black text-center mb-6">{modalType === "login" ? "Conectare Cont" : "Creare Cont Nou"}</h3>
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              {modalType === "register" && (
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Nume Complet</label>
-                  <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-pink-500" placeholder="Ionescu Alin" />
-                </div>
-              )}
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Adresă Email</label>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-pink-500" placeholder="nume@gmail.com" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Parolă</label>
-                <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-pink-500" placeholder="••••••••" />
-              </div>
-              {modalType === "register" && (
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="terms" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="rounded text-pink-600 focus:ring-pink-500" />
-                  <label htmlFor="terms" className="text-xs text-gray-500">Sunt de acord cu Termenii</label>
-                </div>
-              )}
-              <button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs py-3.5 rounded-xl transition shadow-md mt-2">
-                {modalType === "login" ? "Intră în cont" : "Înregistrează-te"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
+      {/* HAMBURGER SIDEBAR PREMIUM COMPLET UPGRADAT CU CHAT */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex">
-          <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 relative overflow-hidden">
+        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex animate-in fade-in duration-200">
+          <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 animate-in slide-in-from-left duration-300 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl pointer-events-none" />
+            
             <div>
+              {/* Header Meniu */}
               <div className="p-6 bg-gradient-to-r from-pink-600 to-rose-500 text-white flex justify-between items-center shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-white text-pink-600 flex items-center justify-center text-lg font-black shadow-sm">🧁</div>
@@ -326,16 +277,97 @@ export default function Navbar() {
                     <span className="text-[10px] text-pink-100 font-medium">Premium Laborator</span>
                   </div>
                 </div>
-                <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition text-white/80 hover:text-white font-bold text-sm">✕</button>
+                <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition font-bold text-sm">✕</button>
               </div>
-              <div className="p-4">
-                <ul className="space-y-1">
-                  <li onClick={() => { setIsSidebarOpen(false); window.location.reload(); }} className="flex items-center justify-between p-3 rounded-xl hover:bg-pink-50/50 text-gray-700 hover:text-pink-600 font-bold text-xs transition cursor-pointer">🏠 Acasă</li>
+
+              {/* Status Cont Real */}
+              <div className="p-4 bg-gray-50 border-b border-gray-100">
+                {user ? (
+                  <div className="flex items-center gap-3 justify-between">
+                    <div className="truncate flex-1">
+                      <p className="text-xs font-black text-gray-900 truncate">👤 {user.name || "Client Autentificat"}</p>
+                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{user.email}</p>
+                    </div>
+                    <button onClick={handleDeconectare} className="text-[9px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md border border-red-200/40 transition">Ieșire</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between py-1">
+                    <p className="text-xs font-medium text-gray-500">Vizitator anonim</p>
+                    <button onClick={() => { setIsSidebarOpen(false); setModalType("login"); }} className="bg-pink-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg hover:bg-pink-700 transition shadow">Conectare</button>
+                  </div>
+                )}
+              </div>
+
+              {/* Rute Link-uri */}
+              <div className="p-4 border-b border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">Navigare Site</p>
+                <ul className="space-y-0.5">
+                  <li onClick={() => { setIsSidebarOpen(false); window.location.reload(); }} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-pink-50/50 text-gray-700 hover:text-pink-600 font-bold text-xs transition cursor-pointer">🏠 Acasă / Vitrină</li>
+                  <Link href="/admin" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-bold text-xs transition cursor-pointer">📊 Panou Administrator</Link>
                 </ul>
               </div>
+
+              {/* SECTIUNE NOUA: CHAT SUUPORT LIVE INTERIOR */}
+              <div className="p-4">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">🗨️ Chat Asistență Live</p>
+                <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-48 justify-between shadow-inner">
+                  {/* Fereastră istoric mesaje chat */}
+                  <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
+                    {istoricChat.map((m, idx) => (
+                      <div key={idx} className={`flex ${m.emitent === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 font-medium leading-relaxed ${
+                          m.emitent === "user" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"
+                        }`}>
+                          {m.text}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Formular trimitere text chat */}
+                  <form onSubmit={trimiteMesajChat} className="mt-2 flex gap-1.5 border-t border-gray-800 pt-2 shrink-0">
+                    <input 
+                      type="text" 
+                      value={mesajChat} 
+                      onChange={(e) => setMesajChat(e.target.value)} 
+                      placeholder="Scrie un mesaj..." 
+                      className="w-full bg-gray-900 text-white rounded-lg px-2.5 py-1.5 text-[11px] outline-none border border-transparent focus:border-pink-500/40" 
+                    />
+                    <button type="submit" className="bg-pink-600 hover:bg-pink-700 text-white px-2.5 rounded-lg text-[10px] font-bold transition">➔</button>
+                  </form>
+                </div>
+              </div>
+
             </div>
+
+            {/* Subsol Info */}
+            <div className="p-4 bg-gray-50 text-center text-[10px] font-bold text-gray-400 border-t border-gray-100">
+              <p className="text-gray-700 font-black">📍 Str. Dulce nr. 10, Iași</p>
+              <div className="mt-2 text-[9px] tracking-widest uppercase">DulceGust v1.4 Core OS</div>
+            </div>
+
           </div>
           <div className="flex-1" onClick={() => setIsSidebarOpen(false)} />
+        </div>
+      )}
+
+      {/* MODAL AUTH ACELAȘI */}
+      {modalType && (
+        <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800">
+            <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm">✕</button>
+            <h3 className="text-xl font-black text-center mb-6">{modalType === "login" ? "Conectare" : "Cont Nou"}</h3>
+            <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
+              {modalType === "register" && (
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
+              )}
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
+              {modalType === "register" && (
+                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px] text-gray-500">Accept Termenii</span></div>
+              )}
+              <button type="submit" className="w-full bg-pink-600 text-white font-bold py-3 rounded-xl">{modalType === "login" ? "Intră" : "Înregistrare"}</button>
+            </form>
+          </div>
         </div>
       )}
     </>
