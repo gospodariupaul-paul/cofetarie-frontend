@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 
+interface MesajChat {
+  emitent: "user" | "suport";
+  text: string;
+}
+
 export default function Navbar() {
   const { cart, cartCount, cartTotal, removeFromCart, clearCart } = useCart();
   const [user, setUser] = useState<{ email: string; name?: string } | null>(null);
@@ -23,7 +28,8 @@ export default function Navbar() {
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
 
   const [mesajChat, setMesajChat] = useState("");
-  const [istoricChat, setIstoricChat] = useState<{ emitent: "user" | "suport"; text: string }>([
+  // REPARAT: Am adaugat parantezele patrate [ ] pentru a defini corect o lista de mesaje
+  const [istoricChat, setIstoricChat] = useState<MesajChat[]>([
     { emitent: "suport", text: "Bună! Cum te putem ajuta astăzi cu dulciurile noastre?" }
   ]);
 
@@ -34,7 +40,7 @@ export default function Navbar() {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-  }, []);
+  },);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +108,7 @@ export default function Navbar() {
     e.preventDefault();
     if (!mesajChat.trim()) return;
 
-    const nouMesaj = { emitent: "user" as const, text: mesajChat };
+    const nouMesaj: MesajChat = { emitent: "user", text: mesajChat };
     setIstoricChat((prev) => [...prev, nouMesaj]);
     setMesajChat("");
 
@@ -302,7 +308,7 @@ export default function Navbar() {
               </div>
 
               <div className="p-4">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">️ Chat Asistență Live</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">🗨️ Chat Asistență Live</p>
                 <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-48 justify-between shadow-inner">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
                     {istoricChat.map((m, idx) => (
@@ -332,7 +338,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* POP-UP AUTH COMPLET INTEGRAT ȘI ÎNCHIS CORECT */}
+      {/* POP-UP AUTH COMPLET INTEGRAT */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800 animate-in zoom-in-95 duration-200">
