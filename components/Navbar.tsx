@@ -5,7 +5,7 @@ import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 
 export default function Navbar() {
-  const { cart, cartCount, cartTotal, removeFromCart, clearCart, addToCart } = useCart();
+  const { cart, cartCount, cartTotal, removeFromCart, clearCart } = useCart();
   const [user, setUser] = useState<{ email: string; name?: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,9 +22,8 @@ export default function Navbar() {
   const [telefonComanda, setTelefonComanda] = useState("");
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
 
-  // Chat în interiorul Hamburgerului
   const [mesajChat, setMesajChat] = useState("");
-  const [istoricChat, setIstoricChat] = useState<{ emitent: "user" | "suport"; text: string }[]>([
+  const [istoricChat, setIstoricChat] = useState<{ emitent: "user" | "suport"; text: string }>([
     { emitent: "suport", text: "Bună! Cum te putem ajuta astăzi cu dulciurile noastre?" }
   ]);
 
@@ -70,7 +69,6 @@ export default function Navbar() {
       setMesaj({ text: err.message, tip: "eroare" });
     }
   };
-
   const handleTrimiteComandaNeon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
@@ -108,7 +106,6 @@ export default function Navbar() {
     setIstoricChat((prev) => [...prev, nouMesaj]);
     setMesajChat("");
 
-    // Răspuns automat simulat de la cofetărie
     setTimeout(() => {
       setIstoricChat((prev) => [
         ...prev,
@@ -124,6 +121,7 @@ export default function Navbar() {
     setActiveDropdown(null);
     setIsSidebarOpen(false);
   };
+
   return (
     <>
       <nav className="sticky top-0 z-50 bg-pink-600/90 backdrop-blur-md text-white shadow-md transition-all">
@@ -154,7 +152,6 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
-
           <div className="relative w-full max-w-xs">
             <input
               type="text"
@@ -197,7 +194,7 @@ export default function Navbar() {
                       <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl p-4 shadow-2xl border border-pink-100 text-gray-800 z-50">
                         <div className="pb-3 border-b border-gray-100">
                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider">Conectat ca</p>
-                          <p className="text-xs font-black text-gray-900 truncate mt-0.5">{user.name || "Client"}</p>
+                          <p className="text-xs font-black text-gray-900 truncate mt-0.5">{user.name || "Client Autentificat"}</p>
                           <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
                         </div>
                         <div className="my-3 p-2.5 bg-pink-50/50 rounded-xl border border-pink-100/30 flex items-center justify-between">
@@ -268,7 +265,6 @@ export default function Navbar() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full blur-3xl pointer-events-none" />
             
             <div>
-              {/* Header Meniu */}
               <div className="p-6 bg-gradient-to-r from-pink-600 to-rose-500 text-white flex justify-between items-center shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-white text-pink-600 flex items-center justify-center text-lg font-black shadow-sm">🧁</div>
@@ -280,7 +276,6 @@ export default function Navbar() {
                 <button onClick={() => setIsSidebarOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition font-bold text-sm">✕</button>
               </div>
 
-              {/* Status Cont Real */}
               <div className="p-4 bg-gray-50 border-b border-gray-100">
                 {user ? (
                   <div className="flex items-center gap-3 justify-between">
@@ -298,7 +293,6 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Rute Link-uri */}
               <div className="p-4 border-b border-gray-100">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">Navigare Site</p>
                 <ul className="space-y-0.5">
@@ -307,11 +301,9 @@ export default function Navbar() {
                 </ul>
               </div>
 
-              {/* SECTIUNE NOUA: CHAT SUUPORT LIVE INTERIOR */}
               <div className="p-4">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">🗨️ Chat Asistență Live</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">️ Chat Asistență Live</p>
                 <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-48 justify-between shadow-inner">
-                  {/* Fereastră istoric mesaje chat */}
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
                     {istoricChat.map((m, idx) => (
                       <div key={idx} className={`flex ${m.emitent === "user" ? "justify-end" : "justify-start"}`}>
@@ -323,39 +315,37 @@ export default function Navbar() {
                       </div>
                     ))}
                   </div>
-                  {/* Formular trimitere text chat */}
                   <form onSubmit={trimiteMesajChat} className="mt-2 flex gap-1.5 border-t border-gray-800 pt-2 shrink-0">
-                    <input 
-                      type="text" 
-                      value={mesajChat} 
-                      onChange={(e) => setMesajChat(e.target.value)} 
-                      placeholder="Scrie un mesaj..." 
-                      className="w-full bg-gray-900 text-white rounded-lg px-2.5 py-1.5 text-[11px] outline-none border border-transparent focus:border-pink-500/40" 
-                    />
+                    <input type="text" value={mesajChat} onChange={(e) => setMesajChat(e.target.value)} placeholder="Scrie un mesaj..." className="w-full bg-gray-900 text-white rounded-lg px-2.5 py-1.5 text-[11px] outline-none border border-transparent focus:border-pink-500/40" />
                     <button type="submit" className="bg-pink-600 hover:bg-pink-700 text-white px-2.5 rounded-lg text-[10px] font-bold transition">➔</button>
                   </form>
                 </div>
               </div>
-
             </div>
 
-            {/* Subsol Info */}
             <div className="p-4 bg-gray-50 text-center text-[10px] font-bold text-gray-400 border-t border-gray-100">
               <p className="text-gray-700 font-black">📍 Str. Dulce nr. 10, Iași</p>
               <div className="mt-2 text-[9px] tracking-widest uppercase">DulceGust v1.4 Core OS</div>
             </div>
-
           </div>
           <div className="flex-1" onClick={() => setIsSidebarOpen(false)} />
         </div>
       )}
 
-      {/* MODAL AUTH ACELAȘI */}
+      {/* POP-UP AUTH COMPLET INTEGRAT ȘI ÎNCHIS CORECT */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border border-pink-100 shadow-2xl relative text-gray-800 animate-in zoom-in-95 duration-200">
             <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm">✕</button>
             <h3 className="text-xl font-black text-center mb-6">{modalType === "login" ? "Conectare" : "Cont Nou"}</h3>
+            
+            {mesaj.text && (
+              <div className={`text-center text-xs font-bold p-3 rounded-xl mb-4 ${
+                mesaj.tip === "succes" ? "bg-green-50 text-green-700 border border-green-100" :
+                mesaj.tip === "eroare" ? "bg-red-50 text-red-700 border border-red-100" : "bg-blue-50 text-blue-700"
+              }`}>{mesaj.text}</div>
+            )}
+
             <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
               {modalType === "register" && (
                 <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
@@ -363,9 +353,14 @@ export default function Navbar() {
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
               {modalType === "register" && (
-                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px] text-gray-500">Accept Termenii</span></div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
+                  <span className="text-[10px] text-gray-500">Accept Termenii</span>
+                </div>
               )}
-              <button type="submit" className="w-full bg-pink-600 text-white font-bold py-3 rounded-xl">{modalType === "login" ? "Intră" : "Înregistrare"}</button>
+              <button type="submit" className="w-full bg-pink-600 text-white font-bold py-3 rounded-xl hover:bg-pink-700 transition">
+                {modalType === "login" ? "Intră" : "Înregistrare Cont"}
+              </button>
             </form>
           </div>
         </div>
