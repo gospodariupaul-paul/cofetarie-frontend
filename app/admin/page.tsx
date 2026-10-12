@@ -21,6 +21,12 @@ interface Produs {
   tag?: string;
 }
 
+interface MesajChatAdmin {
+  emitent: "user" | "suport";
+  text: string;
+  ora: string;
+}
+
 export default function AdminDashboard() {
   const [esteAdmin, setEsteAdmin] = useState<boolean>(false);
   const [codAcces, setCodAcces] = useState<string>("");
@@ -29,10 +35,7 @@ export default function AdminDashboard() {
   const [incarcare, setIncarcare] = useState<boolean>(true);
   const [eroare, setEroare] = useState<string | null>(null);
 
-  // Statut pentru Editare / Modificare
   const [idProdusEditat, setIdProdusEditat] = useState<string | null>(null);
-
-  // Formular produs
   const [numeProdus, setNumeProdus] = useState("");
   const [descriereProdus, setDescriereProdus] = useState("");
   const [pretProdus, setPretProdus] = useState("");
@@ -40,6 +43,13 @@ export default function AdminDashboard() {
   const [imagineBase64, setImagineBase64] = useState("");
   const [tagProdus, setTagProdus] = useState("");
   const [seTrimite, setSeTrimite] = useState(false);
+
+  const [textRaspunsAdmin, setTextRaspunsAdmin] = useState("");
+  const [conversatieLive, setConversatieLive] = useState<MesajChatAdmin[]>([
+    { emitent: "user", text: "Bună ziua, aș dori să știu dacă tortul de post conține arahide.", ora: "10:30" },
+    { emitent: "suport", text: "Bună ziua! Prăjitura de post nu conține arahide, dar este preparată într-un laborator unde se procesează nuci.", ora: "10:32" },
+    { emitent: "user", text: "Am înțeles, mulțumesc frumos! Voi plasa o comandă acum.", ora: "10:35" }
+  ]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
@@ -52,12 +62,12 @@ export default function AdminDashboard() {
       alert("Cod de acces incorect!");
     }
   };
+
   useEffect(() => {
     if (localStorage.getItem("role_admin") === "true") {
       setEsteAdmin(true);
     }
   }, []);
-
   const incarcaDateleAdmin = async () => {
     try {
       const resProd = await fetch(`${API_URL}/api/produse`);
@@ -97,6 +107,7 @@ export default function AdminDashboard() {
       cititor.readAsDataURL(fisier);
     }
   };
+
   const handleSelecteazaProdusPentruEditare = (p: Produs) => {
     setIdProdusEditat(p.id);
     setNumeProdus(p.name);
@@ -116,7 +127,6 @@ export default function AdminDashboard() {
     setImagineBase64("");
     setTagProdus("");
   };
-
   const handleSalveazaSauModificaProdus = async (e: React.FormEvent) => {
     e.preventDefault();
     setSeTrimite(true);
@@ -164,6 +174,24 @@ export default function AdminDashboard() {
       alert(`Eroare la ștergere: ${err.message}`);
     }
   };
+
+  const handleTrimiteRaspunsChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!textRaspunsAdmin.trim()) return;
+
+    const acum = new Date();
+    const oraMinut = `${acum.getHours().toString().padStart(2, '0')}:${acum.getMinutes().toString().padStart(2, '0')}`;
+
+    const raspunsNou: MesajChatAdmin = {
+      emitent: "suport",
+      text: textRaspunsAdmin,
+      ora: oraMinut
+    };
+
+    setConversatieLive((prev) => [...prev, raspunsNou]);
+    setTextRaspunsAdmin("");
+  };
+
   if (!esteAdmin) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
@@ -189,10 +217,10 @@ export default function AdminDashboard() {
   }
 
   const totalIncasat = comenzi.reduce((sum, c) => sum + (c.totalAmount || 0), 0);
-
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-800 pb-6 mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-black text-white">Admin Dashboard 📊</h1>
@@ -204,6 +232,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Panou Statistici */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦", culoare: "text-blue-500" },
@@ -220,15 +249,19 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* Zona Grilei Split pe 4 Coloane pentru spatiu generos */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          
+          {/* Formular Modificabil */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
                 <span>{idProdusEditat ? "📝" : "➕"}</span> 
-                {idProdusEditat ? "Modifică Produsul" : "Încarcă Produs Nou"}
+                {idProdusEditat ? "Modifică Produs" : "Încarcă Produs"}
               </h3>
               {idProdusEditat && (
-                <button onClick={handleAnuleazaEditarea} className="text-[10px] bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded-md text-gray-400 font-bold uppercase">Anulează</button>
+                <button onClick={handleAnuleazaEditarea} className="text-[9px] bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded text-gray-400 font-bold uppercase">Anulează</button>
               )}
             </div>
             
@@ -241,32 +274,28 @@ export default function AdminDashboard() {
                 <label className="text-[10px] text-gray-400 uppercase block mb-1">Descriere</label>
                 <textarea required value={descriereProdus} onChange={(e) => setDescriereProdus(e.target.value)} rows={2} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500 resize-none" placeholder="Ingrediente..." />
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Preț (LEI)</label>
                   <input type="number" required value={pretProdus} onChange={(e) => setPretProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500" placeholder="140" />
                 </div>
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Schimbă Imaginea</label>
-                  <input type="file" accept="image/*" onChange={handleImagineChange} className="w-full bg-gray-950 border border-gray-800 text-gray-400 rounded-xl px-2 py-2 outline-none focus:border-pink-500 text-[10px] file:mr-2 file:bg-pink-600 file:text-white file:rounded-md file:border-0 file:font-bold file:text-[9px] file:py-1 file:px-2" />
+                  <input type="file" accept="image/*" onChange={handleImagineChange} className="w-full bg-gray-950 border border-gray-800 text-gray-400 rounded-xl px-2 py-2 outline-none focus:border-pink-500 text-[10px] file:mr-2 file:bg-pink-600 file:text-white file:rounded-md file:border-0 file:font-bold file:text-[9px]" />
                 </div>
               </div>
-
               {imagineBase64 && (
                 <div className="mt-2 p-2 bg-gray-950 border border-gray-800 rounded-xl flex items-center gap-3">
-                  <img src={imagineBase64} alt="Preview" className="w-12 h-12 object-cover rounded-lg border border-gray-800" />
-                  <span className="text-[10px] text-green-400 font-bold">✓ Imagine pregătită!</span>
+                  <img src={imagineBase64} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-gray-800" />
+                  <span className="text-[9px] text-green-400 font-bold">✓ Imagine pregătită!</span>
                 </div>
               )}
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase block mb-1">Categorie</label>
                   <select value={categorieProdus} onChange={(e) => setCategorieProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500">
                     <option value="torturi">Torturi</option>
                     <option value="prajituri">Prăjituri</option>
-                    <option value="tech-deals">Tech-Deals</option>
                   </select>
                 </div>
                 <div>
@@ -275,33 +304,33 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <button type="submit" disabled={seTrimite} className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-800 text-white font-black py-3 rounded-xl transition shadow-md">
-                {seTrimite ? "Se salvează în Neon..." : idProdusEditat ? "💾 Salvează Modificările" : "🚀 Pune Produsul pe Site"}
+                {seTrimite ? "Se salvează..." : idProdusEditat ? "💾 Salvează Modificările" : "🚀 Pune Produsul pe Site"}
               </button>
             </form>
           </div>
-
+          {/* Tabelul de Comenzi Live */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
-            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
-              <span>🛒</span> Flux Comenzi Recente
+            <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+              <span>🛒</span> Comenzi
             </h3>
             {incarcare ? (
-              <p className="text-xs text-gray-500 font-bold py-6">Se citesc datele...</p>
+              <p className="text-xs text-gray-500 font-bold py-4">Se citesc datele...</p>
             ) : comenzi.length === 0 ? (
-              <p className="text-xs text-gray-500 font-bold py-6">Fără comenzi active.</p>
+              <p className="text-xs text-gray-500 font-bold py-4">Fără comenzi active.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-gray-800 text-gray-400 font-bold uppercase">
-                      <th className="pb-3">Client</th>
-                      <th className="pb-3 text-right">Valoare</th>
+                      <th className="pb-2">Client</th>
+                      <th className="pb-2 text-right">Preț</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
                     {comenzi.map((c) => (
                       <tr key={c.id} className="text-gray-300">
-                        <td className="py-3 font-bold text-white">{c.clientName}</td>
-                        <td className="py-3 text-right font-black text-green-400">{c.totalAmount} LEI</td>
+                        <td className="py-2.5 font-bold text-white truncate max-w-[80px]">{c.clientName}</td>
+                        <td className="py-2.5 text-right font-black text-green-400">{c.totalAmount} L</td>
                       </tr>
                     ))}
                   </tbody>
@@ -310,53 +339,70 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+          {/* Listă Produse Active Interactivă */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
+            <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+              <span>📋</span> Produse Active
+            </h3>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+              {produse.map((p) => (
+                <div 
+                  key={p.id} 
+                  onClick={() => handleSelecteazaProdusPentruEditare(p)}
+                  className={`p-2 rounded-xl flex justify-between items-center text-xs font-bold border transition cursor-pointer ${
+                    idProdusEditat === p.id ? "bg-pink-950/40 border-pink-500" : "bg-gray-950 border-gray-800/60 hover:bg-gray-800/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
+                    <div className="w-7 h-6 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shrink-0">
+                      {p.icon && p.icon.startsWith("data:image") ? (
+                        <img src={p.icon} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs">{p.icon || "🧁"}</span>
+                      )}
+                    </div>
+                    <p className="text-white truncate text-[11px]">{p.name}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-1">
+                    <p className="text-gray-400 text-[10px]">{p.price}L</p>
+                    <button onClick={(e) => handleStergeProdus(p.id, e)} className="p-1.5 bg-red-950/40 hover:bg-red-900 border border-red-900/50 rounded-lg text-red-400 text-[10px] pointer-events-auto">🗑️</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* NOU: PANOU INTEGRAT DE MONITORIZARE ȘI RĂSPUNS CHAT SUPORT */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-[450px]">
             <div>
-              <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
-                <span>📋</span> Produse în Meniu (Click pe căsuță)
+              <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+                <span>💬</span> Chat Suport Clienți
               </h3>
-              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {produse.map((p) => (
-                  <div 
-                    key={p.id} 
-                    onClick={() => handleSelecteazaProdusPentruEditare(p)}
-                    className={`p-3 rounded-xl flex justify-between items-center text-xs font-bold border transition cursor-pointer ${
-                      idProdusEditat === p.id 
-                        ? "bg-pink-950/40 border-pink-500 shadow" 
-                        : "bg-gray-950 border-gray-800/60 hover:bg-gray-800/40 hover:border-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
-                      <div className="w-8 h-7 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shrink-0">
-                        {p.icon && p.icon.startsWith("data:image") ? (
-                          <img src={p.icon} alt={p.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-base">{p.icon || "🧁"}</span>
-                        )}
-                      </div>
-                      <div className="truncate flex-1">
-                        <p className="text-white truncate">{p.name}</p>
-                        <span className="text-[9px] text-pink-500 uppercase tracking-widest mt-0.5 block">{p.category}</span>
-                      </div>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 flex flex-col gap-1">
+                {conversatieLive.map((m, idx) => (
+                  <div key={idx} className={`flex flex-col ${m.emitent === "suport" ? "items-end" : "items-start"}`}>
+                    <span className="text-[9px] text-gray-500 font-bold mb-0.5">{m.emitent === "suport" ? "Laborator (Tu)" : "Client Online"}</span>
+                    <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 text-[11px] font-medium leading-relaxed ${
+                      m.emitent === "suport" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"
+                    }`}>
+                      {m.text}
                     </div>
-                    
-                    <div className="flex items-center gap-3 shrink-0 ml-2">
-                      <p className="text-gray-300">{p.price} LEI</p>
-                      <button 
-                        onClick={(e) => handleStergeProdus(p.id, e)}
-                        className="p-2 bg-red-950/40 hover:bg-red-900 border border-red-900/50 hover:border-red-600 rounded-lg text-red-400 hover:text-white transition shadow-sm pointer-events-auto"
-                        title="Șterge definitiv"
-                      >
-                        🗑️
-                      </button>
-                    </div>
+                    <span className="text-[8px] text-gray-600 mt-0.5 px-0.5">{m.ora}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-gray-800 text-center text-[10px] font-bold text-gray-600 tracking-wider">
-              DULCEGUST METRICS CORE v1.3
-            </div>
+
+            <form onSubmit={handleTrimiteRaspunsChat} className="mt-4 flex gap-1.5 border-t border-gray-800/60 pt-3 shrink-0">
+              <input
+                type="text"
+                value={textRaspunsAdmin}
+                onChange={(e) => setTextRaspunsAdmin(e.target.value)}
+                placeholder="Scrie răspunsul..."
+                className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-pink-500/40 font-medium"
+              />
+              <button type="submit" className="bg-pink-600 hover:bg-pink-700 text-white px-3 rounded-lg text-xs font-black transition">➔</button>
+            </form>
           </div>
 
         </div>
