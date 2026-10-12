@@ -22,9 +22,10 @@ interface Produs {
 }
 
 interface MesajChatAdmin {
+  id?: string;
   emitent: "user" | "suport";
   text: string;
-  ora: string;
+  createdAt?: string;
 }
 
 export default function AdminDashboard() {
@@ -45,11 +46,7 @@ export default function AdminDashboard() {
   const [seTrimite, setSeTrimite] = useState(false);
 
   const [textRaspunsAdmin, setTextRaspunsAdmin] = useState("");
-  const [conversatieLive, setConversatieLive] = useState<MesajChatAdmin[]>([
-    { emitent: "user", text: "Bună ziua, aș dori să știu dacă tortul de post conține arahide.", ora: "10:30" },
-    { emitent: "suport", text: "Bună ziua! Prăjitura de post nu conține arahide, dar este preparată într-un laborator unde se procesează nuci.", ora: "10:32" },
-    { emitent: "user", text: "Am înțeles, mulțumesc frumos! Voi plasa o comandă acum.", ora: "10:35" }
-  ]);
+  const [conversatieLive, setConversatieLive] = useState<MesajChatAdmin[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
@@ -77,7 +74,7 @@ export default function AdminDashboard() {
       const resCom = await fetch(`${API_URL}/api/comenzi`);
       if (resCom.ok) {
         const dateCom = await resCom.json();
-        setComenzi(dateCom.date || dateCom || []);
+        setComenzi(dateCom);
       }
     } catch (err) {
       console.error("Eroare preluare date admin:", err);
@@ -86,6 +83,26 @@ export default function AdminDashboard() {
       setIncarcare(false);
     }
   };
+
+  useEffect(() => {
+    if (!esteAdmin) return;
+    
+    const preiaChatLive = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/chat`);
+        if (res.ok) {
+          const dateChat = await res.json();
+          setConversatieLive(dateChat);
+        }
+      } catch (err) {
+        console.error("Eroare preluare live chat admin:", err);
+      }
+    };
+
+    preiaChatLive();
+    const intervalChat = setInterval(preiaChatLive, 3000);
+    return () => clearInterval(intervalChat);
+  }, [esteAdmin, API_URL]);
 
   useEffect(() => {
     if (!esteAdmin) return;
@@ -107,7 +124,6 @@ export default function AdminDashboard() {
       cititor.readAsDataURL(fisier);
     }
   };
-
   const handleSelecteazaProdusPentruEditare = (p: Produs) => {
     setIdProdusEditat(p.id);
     setNumeProdus(p.name);
@@ -127,6 +143,7 @@ export default function AdminDashboard() {
     setImagineBase64("");
     setTagProdus("");
   };
+
   const handleSalveazaSauModificaProdus = async (e: React.FormEvent) => {
     e.preventDefault();
     setSeTrimite(true);
@@ -150,7 +167,7 @@ export default function AdminDashboard() {
 
       if (!res.ok) throw new Error("Backend-ul a respins operațiunea.");
 
-      alert(idProdusEditat ? "Modificările au fost salvate în mod real! ✨" : "Produs nou adăugat! 🎉");
+      alert(idProdusEditat ? "Modificările au fost salvate! ✨" : "Produs nou adăugat! 🎉");
       handleAnuleazaEditarea();
       incarcaDateleAdmin();
     } catch (err: any) {
@@ -159,15 +176,14 @@ export default function AdminDashboard() {
       setSeTrimite(false);
     }
   };
-
   const handleStergeProdus = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Sigur vrei să ștergi definitiv acest produs din baza de date Neon?")) return;
+    if (!confirm("Sigur vrei să ștergi definitiv acest produs din Neon?")) return;
 
     try {
       const res = await fetch(`${API_URL}/api/produse/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Nu s-a putut efectua ștergerea.");
-      alert("Produsul a fost eliminat complet! 🗑️");
+      alert("Produsul a fost eliminat! 🗑️");
       if (idProdusEditat === id) handleAnuleazaEditarea();
       incarcaDateleAdmin();
     } catch (err: any) {
@@ -175,21 +191,28 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleTrimiteRaspunsChat = (e: React.FormEvent) => {
+  const handleTrimiteRaspunsChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!textRaspunsAdmin.trim()) return;
 
-    const acum = new Date();
-    const oraMinut = `${acum.getHours().toString().padStart(2, '0')}:${acum.getMinutes().toString().padStart(2, '0')}`;
-
     const raspunsNou: MesajChatAdmin = {
       emitent: "suport",
-      text: textRaspunsAdmin,
-      ora: oraMinut
+      text: textRaspunsAdmin
     };
 
     setConversatieLive((prev) => [...prev, raspunsNou]);
+    const textDeTrimis = textRaspunsAdmin;
     setTextRaspunsAdmin("");
+
+    try {
+      await fetch(`${API_URL}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emitent: "suport", text: textDeTrimis }),
+      });
+    } catch (err) {
+      console.error("Eroare salvare raspuns admin:", err);
+    }
   };
 
   if (!esteAdmin) {
@@ -199,18 +222,11 @@ export default function AdminDashboard() {
           <div className="text-center mb-6">
             <span className="text-4xl">🔐</span>
             <h2 className="text-2xl font-black mt-2">DulceGust OS</h2>
-            <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-wider">Panou Securizat Admin</p>
           </div>
           <form onSubmit={handleLoginAdmin} className="space-y-4">
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 tracking-wider block mb-1 uppercase">Cod Acces Master</label>
-              <input type="password" required value={codAcces} onChange={(e) => setCodAcces(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none focus:border-pink-500" placeholder="••••••••" />
-            </div>
-            <button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs py-3.5 rounded-xl transition">Deblochează Panoul</button>
+            <input type="password" required value={codAcces} onChange={(e) => setCodAcces(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none" placeholder="Cod de acces admin" />
+            <button type="submit" className="w-full bg-pink-600 text-white font-bold py-3 rounded-xl">Intră</button>
           </form>
-          <div className="text-center mt-6">
-            <Link href="/" className="text-xs text-gray-500 hover:text-pink-400 font-bold transition">← Înapoi în cofetărie</Link>
-          </div>
         </div>
       </div>
     );
@@ -220,188 +236,109 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Top Navbar */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-800 pb-6 mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-black text-white">Admin Dashboard 📊</h1>
-            <p className="text-xs text-gray-400 font-medium mt-1">Gestiunea în timp real a bazei de date Neon PostgreSQL</p>
+            <p className="text-xs text-gray-400 mt-1">Gestiunea bazei de date Neon PostgreSQL</p>
           </div>
           <div className="flex gap-3">
-            <Link href="/" className="bg-gray-900 border border-gray-800 hover:bg-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center">🏠 Vezi Site-ul</Link>
-            <button onClick={() => { localStorage.removeItem("role_admin"); setEsteAdmin(false); }} className="bg-red-950 border border-red-900/50 text-red-400 hover:bg-red-900 text-xs font-bold px-4 py-2.5 rounded-xl transition">🔒 Închide Sesiunea</button>
+            <Link href="/" className="bg-gray-900 border border-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl transition">🏠 Vezi Site</Link>
+            <button onClick={() => { localStorage.removeItem("role_admin"); setEsteAdmin(false); }} className="bg-red-950 text-red-400 text-xs font-bold px-4 py-2.5 rounded-xl">🔒 Ieșire</button>
           </div>
         </div>
 
-        {/* Panou Statistici */}
+        {/* Căsuțe KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦", culoare: "text-blue-500" },
-            { titlu: "Încasări Totale", valoare: `${totalIncasat} LEI`, icon: "💰", culoare: "text-green-500" },
-            { titlu: "Produse Active", valoare: produse.length, icon: "🍰", culoare: "text-pink-500" },
-            { titlu: "Status Server", valoare: "ONLINE", icon: "⚡", culoare: "text-orange-500" }
+            { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦" },
+            { titlu: "Încasări Totale", valoare: `${totalIncasat} LEI`, icon: "💰" },
+            { titlu: "Produse Active", valoare: productos ? produse.length : 0, icon: "🍰" },
+            { titlu: "Status Core", valoare: "ONLINE", icon: "⚡" }
           ].map((kpi, i) => (
             <div key={i} className="bg-gray-900 border border-gray-800 p-5 rounded-2xl flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{kpi.titlu}</p>
-                <p className={`text-2xl font-black mt-1 ${kpi.culoare}`}>{kpi.valoare}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">{kpi.titlu}</p>
+                <p className="text-2xl font-black text-white mt-1">{kpi.valoare}</p>
               </div>
-              <span className="text-3xl bg-gray-950/60 h-12 w-12 rounded-xl flex items-center justify-center border border-gray-800/40">{kpi.icon}</span>
+              <span className="text-2xl bg-gray-950 h-10 w-10 rounded-xl flex items-center justify-center">{kpi.icon}</span>
             </div>
           ))}
         </div>
 
-        {/* Zona Grilei Split pe 4 Coloane pentru spatiu generos */}
+        {/* Zona Grilei de Control */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           
-          {/* Formular Modificabil */}
+          {/* Bloc Formular */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-black text-white flex items-center gap-2">
-                <span>{idProdusEditat ? "📝" : "➕"}</span> 
-                {idProdusEditat ? "Modifică Produs" : "Încarcă Produs"}
-              </h3>
-              {idProdusEditat && (
-                <button onClick={handleAnuleazaEditarea} className="text-[9px] bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded text-gray-400 font-bold uppercase">Anulează</button>
-              )}
-            </div>
-            
+            <h3 className="text-sm font-black text-white mb-4">{idProdusEditat ? "📝 Modifică Produs" : "➕ Încarcă Produs Nou"}</h3>
             <form onSubmit={handleSalveazaSauModificaProdus} className="space-y-4 text-xs font-bold">
-              <div>
-                <label className="text-[10px] text-gray-400 uppercase block mb-1">Nume Produs</label>
-                <input type="text" required value={numeProdus} onChange={(e) => setNumeProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500" placeholder="Ex: Tort Amaretto" />
+              <input type="text" required value={numeProdus} onChange={(e) => setNumeProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none" placeholder="Nume" />
+              <textarea required value={descriereProdus} onChange={(e) => setDescriereProdus(e.target.value)} rows={2} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none resize-none" placeholder="Descriere..." />
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" required value={pretProdus} onChange={(e) => setPretProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-3 py-2.5" placeholder="Preț LEI" />
+                <input type="file" accept="image/*" onChange={handleImagineChange} className="w-full bg-gray-950 text-gray-400 text-[10px]" />
               </div>
-              <div>
-                <label className="text-[10px] text-gray-400 uppercase block mb-1">Descriere</label>
-                <textarea required value={descriereProdus} onChange={(e) => setDescriereProdus(e.target.value)} rows={2} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500 resize-none" placeholder="Ingrediente..." />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={categorieProdus} onChange={(e) => setCategorieProdus(e.target.value)} className="w-full bg-gray-950 border text-white rounded-xl px-3 py-2.5">
+                  <option value="torturi">Torturi</option>
+                  <option value="prajituri">Prăjituri</option>
+                </select>
+                <input type="text" value={tagProdus} onChange={(e) => setTagProdus(e.target.value)} className="w-full bg-gray-950 border text-white rounded-xl px-3 py-2.5" placeholder="Tag (ex: Nou)" />
               </div>
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className="text-[10px] text-gray-400 uppercase block mb-1">Preț (LEI)</label>
-                  <input type="number" required value={pretProdus} onChange={(e) => setPretProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500" placeholder="140" />
-                </div>
-                <div>
-                  <label className="text-[10px] text-gray-400 uppercase block mb-1">Schimbă Imaginea</label>
-                  <input type="file" accept="image/*" onChange={handleImagineChange} className="w-full bg-gray-950 border border-gray-800 text-gray-400 rounded-xl px-2 py-2 outline-none focus:border-pink-500 text-[10px] file:mr-2 file:bg-pink-600 file:text-white file:rounded-md file:border-0 file:font-bold file:text-[9px]" />
-                </div>
-              </div>
-              {imagineBase64 && (
-                <div className="mt-2 p-2 bg-gray-950 border border-gray-800 rounded-xl flex items-center gap-3">
-                  <img src={imagineBase64} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-gray-800" />
-                  <span className="text-[9px] text-green-400 font-bold">✓ Imagine pregătită!</span>
-                </div>
-              )}
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className="text-[10px] text-gray-400 uppercase block mb-1">Categorie</label>
-                  <select value={categorieProdus} onChange={(e) => setCategorieProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500">
-                    <option value="torturi">Torturi</option>
-                    <option value="prajituri">Prăjituri</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] text-gray-400 uppercase block mb-1">Tag Special</label>
-                  <input type="text" value={tagProdus} onChange={(e) => setTagProdus(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 outline-none focus:border-pink-500" placeholder="Ex: Best Seller" />
-                </div>
-              </div>
-              <button type="submit" disabled={seTrimite} className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-800 text-white font-black py-3 rounded-xl transition shadow-md">
-                {seTrimite ? "Se salvează..." : idProdusEditat ? "💾 Salvează Modificările" : "🚀 Pune Produsul pe Site"}
-              </button>
+              <button type="submit" disabled={seTrimite} className="w-full bg-pink-600 text-white font-black py-3 rounded-xl">{seTrimite ? "Se salvează..." : "🚀 Trimite pe Site"}</button>
             </form>
           </div>
-          {/* Tabelul de Comenzi Live */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
-            <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-              <span>🛒</span> Comenzi
-            </h3>
-            {incarcare ? (
-              <p className="text-xs text-gray-500 font-bold py-4">Se citesc datele...</p>
-            ) : comenzi.length === 0 ? (
-              <p className="text-xs text-gray-500 font-bold py-4">Fără comenzi active.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-gray-800 text-gray-400 font-bold uppercase">
-                      <th className="pb-2">Client</th>
-                      <th className="pb-2 text-right">Preț</th>
+          {/* Bloc Comenzi */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
+            <h3 className="text-sm font-black text-white mb-4">🛒 Flux Comenzi</h3>
+            <div className="overflow-x-auto max-h-[350px]">
+              <table className="w-full text-left text-xs">
+                <tbody className="divide-y divide-gray-800">
+                  {comenzi.map((c) => (
+                    <tr key={c.id} className="text-gray-300">
+                      <td className="py-2 font-bold text-white truncate max-w-[80px]">{c.clientName}</td>
+                      <td className="py-2 text-right font-black text-green-400">{c.totalAmount} LEI</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-800">
-                    {comenzi.map((c) => (
-                      <tr key={c.id} className="text-gray-300">
-                        <td className="py-2.5 font-bold text-white truncate max-w-[80px]">{c.clientName}</td>
-                        <td className="py-2.5 text-right font-black text-green-400">{c.totalAmount} L</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          {/* Listă Produse Active Interactivă */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
-            <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-              <span>📋</span> Produse Active
-            </h3>
-            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+          {/* Bloc Listă Produse Active */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
+            <h3 className="text-sm font-black text-white mb-4">📋 Inventar Produse</h3>
+            <div className="space-y-2 max-h-[350px] overflow-y-auto">
               {produse.map((p) => (
-                <div 
-                  key={p.id} 
-                  onClick={() => handleSelecteazaProdusPentruEditare(p)}
-                  className={`p-2 rounded-xl flex justify-between items-center text-xs font-bold border transition cursor-pointer ${
-                    idProdusEditat === p.id ? "bg-pink-950/40 border-pink-500" : "bg-gray-950 border-gray-800/60 hover:bg-gray-800/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 pointer-events-none">
-                    <div className="w-7 h-6 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shrink-0">
-                      {p.icon && p.icon.startsWith("data:image") ? (
-                        <img src={p.icon} alt={p.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-xs">{p.icon || "🧁"}</span>
-                      )}
-                    </div>
-                    <p className="text-white truncate text-[11px]">{p.name}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-1">
-                    <p className="text-gray-400 text-[10px]">{p.price}L</p>
-                    <button onClick={(e) => handleStergeProdus(p.id, e)} className="p-1.5 bg-red-950/40 hover:bg-red-900 border border-red-900/50 rounded-lg text-red-400 text-[10px] pointer-events-auto">🗑️</button>
+                <div key={p.id} onClick={() => handleSelecteazaProdusPentruEditare(p)} className="p-2 bg-gray-950 border rounded-xl flex justify-between items-center text-xs font-bold cursor-pointer hover:bg-gray-800">
+                  <p className="text-white truncate max-w-[100px] pointer-events-none">{p.name}</p>
+                  <div className="flex items-center gap-2 pointer-events-auto">
+                    <span className="text-gray-400">{p.price}L</span>
+                    <button onClick={(e) => handleStergeProdus(p.id, e)} className="text-red-500 text-[10px]">🗑️</button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* NOU: PANOU INTEGRAT DE MONITORIZARE ȘI RĂSPUNS CHAT SUPORT */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-[450px]">
+          {/* Bloc NOU: Chat Suport Live */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col justify-between h-[390px]">
             <div>
-              <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-                <span>💬</span> Chat Suport Clienți
-              </h3>
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 flex flex-col gap-1">
+              <h3 className="text-sm font-black text-white mb-4">💬 Chat Suport Live (Neon)</h3>
+              <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
                 {conversatieLive.map((m, idx) => (
                   <div key={idx} className={`flex flex-col ${m.emitent === "suport" ? "items-end" : "items-start"}`}>
-                    <span className="text-[9px] text-gray-500 font-bold mb-0.5">{m.emitent === "suport" ? "Laborator (Tu)" : "Client Online"}</span>
-                    <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 text-[11px] font-medium leading-relaxed ${
-                      m.emitent === "suport" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"
-                    }`}>
-                      {m.text}
-                    </div>
-                    <span className="text-[8px] text-gray-600 mt-0.5 px-0.5">{m.ora}</span>
+                    <span className="text-[8px] text-gray-500 font-bold mb-0.5">{m.emitent === "suport" ? "Tu" : "Client"}</span>
+                    <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 text-[11px] ${m.emitent === "suport" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"}`}>{m.text}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <form onSubmit={handleTrimiteRaspunsChat} className="mt-4 flex gap-1.5 border-t border-gray-800/60 pt-3 shrink-0">
-              <input
-                type="text"
-                value={textRaspunsAdmin}
-                onChange={(e) => setTextRaspunsAdmin(e.target.value)}
-                placeholder="Scrie răspunsul..."
-                className="w-full bg-gray-950 border border-gray-800 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-pink-500/40 font-medium"
-              />
-              <button type="submit" className="bg-pink-600 hover:bg-pink-700 text-white px-3 rounded-lg text-xs font-black transition">➔</button>
+            <form onSubmit={handleTrimiteRaspunsChat} className="mt-3 flex gap-1.5 border-t border-gray-800/60 pt-2">
+              <input type="text" value={textRaspunsAdmin} onChange={(e) => setTextRaspunsAdmin(e.target.value)} placeholder="Răspunde..." className="w-full bg-gray-950 border rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-pink-500" />
+              <button type="submit" className="bg-pink-600 text-white px-3 rounded-lg text-xs font-black">➔</button>
             </form>
           </div>
 
