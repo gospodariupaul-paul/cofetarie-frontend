@@ -69,12 +69,12 @@ export default function AdminDashboard() {
     try {
       const resProd = await fetch(`${API_URL}/api/produse`);
       const dateProd = await resProd.json();
-      setProduse(dateProd);
+      setProduse(dateProd || []);
 
       const resCom = await fetch(`${API_URL}/api/comenzi`);
       if (resCom.ok) {
         const dateCom = await resCom.json();
-        setComenzi(dateCom);
+        setComenzi(dateCom || []);
       }
     } catch (err) {
       console.error("Eroare preluare date admin:", err);
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
         const res = await fetch(`${API_URL}/api/chat`);
         if (res.ok) {
           const dateChat = await res.json();
-          setConversatieLive(dateChat);
+          setConversatieLive(dateChat || []);
         }
       } catch (err) {
         console.error("Eroare preluare live chat admin:", err);
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!esteAdmin) return;
     incarcaDateleAdmin();
-  }, [esteAdmin, API_URL]);
+  }, [esteAdmin]);
 
   const handleImagineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fisier = e.target.files?.[0];
@@ -236,7 +236,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Top Navbar */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-800 pb-6 mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-black text-white">Admin Dashboard 📊</h1>
@@ -248,12 +247,11 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Căsuțe KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦" },
             { titlu: "Încasări Totale", valoare: `${totalIncasat} LEI`, icon: "💰" },
-            { titlu: "Produse Active", valoare: productos ? produse.length : 0, icon: "🍰" },
+            { titlu: "Produse Active", valoare: produse ? produse.length : 0, icon: "🍰" }, // REPARAT CHIRURGICAL: produse in loc de productos
             { titlu: "Status Core", valoare: "ONLINE", icon: "⚡" }
           ].map((kpi, i) => (
             <div key={i} className="bg-gray-900 border border-gray-800 p-5 rounded-2xl flex items-center justify-between">
@@ -266,10 +264,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Zona Grilei de Control */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          
-          {/* Bloc Formular */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
             <h3 className="text-sm font-black text-white mb-4">{idProdusEditat ? "📝 Modifică Produs" : "➕ Încarcă Produs Nou"}</h3>
             <form onSubmit={handleSalveazaSauModificaProdus} className="space-y-4 text-xs font-bold">
@@ -289,7 +284,6 @@ export default function AdminDashboard() {
               <button type="submit" disabled={seTrimite} className="w-full bg-pink-600 text-white font-black py-3 rounded-xl">{seTrimite ? "Se salvează..." : "🚀 Trimite pe Site"}</button>
             </form>
           </div>
-          {/* Bloc Comenzi */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
             <h3 className="text-sm font-black text-white mb-4">🛒 Flux Comenzi</h3>
             <div className="overflow-x-auto max-h-[350px]">
@@ -306,7 +300,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Bloc Listă Produse Active */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
             <h3 className="text-sm font-black text-white mb-4">📋 Inventar Produse</h3>
             <div className="space-y-2 max-h-[350px] overflow-y-auto">
@@ -322,7 +315,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Bloc NOU: Chat Suport Live */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col justify-between h-[390px]">
             <div>
               <h3 className="text-sm font-black text-white mb-4">💬 Chat Suport Live (Neon)</h3>
