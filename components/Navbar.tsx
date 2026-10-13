@@ -20,7 +20,7 @@ export default function Navbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // NOU: Citim căutarea direct din adresa URL pentru sincronizare perfectă
+  // Citim căutarea direct din adresa URL pentru sincronizare perfectă
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -38,11 +38,13 @@ export default function Navbar() {
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
 
   const [mesajChat, setMesajChat] = useState("");
-  const [istoricChat, setIstoricChat] = useState<MesajChat>([]);
+  
+  // REPARAT CHIRURGICAL: Adăugat [] pentru a defini corect starea ca LISTĂ (array) de mesaje
+  const [istoricChat, setIstoricChat] = useState<MesajChat[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
-  // NOU: Actualizează adresa URL live când utilizatorul tastează în bara de căutare
+  // Actualizează adresa URL live când utilizatorul tastează în bara de căutare
   const handleSearchChange = (valoare: string) => {
     setSearchQuery(valoare);
     if (valoare.trim()) {
@@ -52,20 +54,24 @@ export default function Navbar() {
     }
   };
 
+  // Ascultare live: Descarcă mesajele din Neon doar pentru acest client unic
   useEffect(() => {
     if (!isSidebarOpen) return;
+    
     const ID_CLIENT = user?.email || "vizitator_anonim";
+
     const preiaMesajeDinBazaDeDate = async () => {
       try {
         const res = await fetch(`${API_URL}/api/chat?userId=${ID_CLIENT}`);
         if (res.ok) {
           const date = await res.json();
-          setIstoricChat(date);
+          setIstoricChat(date || []);
         }
       } catch (err) {
         console.error("Eroare citire chat client:", err);
       }
     };
+
     preiaMesajeDinBazaDeDate();
     const intervalMesaje = setInterval(preiaMesajeDinBazaDeDate, 3000);
     return () => clearInterval(intervalMesaje);
@@ -137,6 +143,7 @@ export default function Navbar() {
     if (!mesajChat.trim()) return;
     const ID_CLIENT = user?.email || "vizitator_anonim";
     const NUME_CLIENT = user?.name || user?.email || "Vizitator";
+    
     const nouMesaj: MesajChat = { userId: ID_CLIENT, userName: NUME_CLIENT, emitent: "user", text: mesajChat };
     setIstoricChat((prev) => [...prev, nouMesaj]);
     setMesajChat("");
@@ -170,7 +177,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* REPARATĂ: Bară de căutare complet funcțională, cu LUPĂ inclusă stânga */}
+          {/* Bară de căutare complet funcțională, cu LUPĂ inclusă stânga */}
           <div className="relative w-full max-w-md">
             <input 
               type="text" 
@@ -179,7 +186,6 @@ export default function Navbar() {
               onChange={(e) => handleSearchChange(e.target.value)} 
               className="w-full rounded-2xl bg-white/20 pl-11 pr-4 py-3 text-sm text-white placeholder-pink-100 outline-none border border-pink-400/30 focus:bg-white focus:text-gray-900 transition font-medium" 
             />
-            {/* Pictograma SVG reprezentând LUPA profesionistă */}
             <svg className="absolute left-4 top-3.5 h-4 w-4 text-pink-100 pointer-events-none transition-colors border-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://w3.org">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -253,7 +259,7 @@ export default function Navbar() {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">🗨️ Chat Asistență Laborator (Live)</p>
                 <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-64 justify-between shadow-inner">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
-                    {istoricChat.length === 0 ? (
+                    {!istoricChat || istoricChat.length === 0 ? (
                       <p className="text-gray-500 text-center py-10 font-bold text-[10px]">Trimite un mesaj pentru a începe conversația privată cu noi!</p>
                     ) : (
                       istoricChat.map((m, idx) => (
@@ -286,8 +292,8 @@ export default function Navbar() {
               {modalType === "register" && (
                 <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" placeholder="Numele tău" />
               )}
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" placeholder="Email" />
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" placeholder="Parolă" />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
               {modalType === "register" && (
                 <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
               )}
