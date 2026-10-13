@@ -35,7 +35,9 @@ export default function Navbar() {
   const [telefonComanda, setTelefonComanda] = useState("");
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
   const [mesajChat, setMesajChat] = useState("");
-  const [istoricChat, setIstoricChat] = useState<MesajChat>([]);
+  
+  // REPARAT CHIRURGICAL: Definit corect ca o listă (array) de mesaje cu valoare inițială array gol
+  const [istoricChat, setIstoricChat] = useState<MesajChat[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
@@ -48,7 +50,6 @@ export default function Navbar() {
     }
   };
 
-  // NOU: Funcție care forțează căutarea când dai click fizic pe iconița de lupă
   const handleApasareLupa = () => {
     if (searchQuery.trim()) {
       router.push(`/?search=${encodeURIComponent(searchQuery)}`);
@@ -174,7 +175,6 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* MODIFICATĂ: Text gri închis vizibil + Lupa are cursor-pointer și ascultă click-ul */}
           <div className="relative w-full max-w-md">
             <input 
               type="text" 
