@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface MesajChat {
@@ -16,7 +17,12 @@ interface MesajChat {
 export default function Navbar() {
   const { cart, cartCount, cartTotal, removeFromCart, clearCart } = useCart();
   const [user, setUser] = useState<{ email: string; name?: string } | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // NOU: Citim căutarea direct din adresa URL pentru sincronizare perfectă
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
@@ -32,16 +38,23 @@ export default function Navbar() {
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
 
   const [mesajChat, setMesajChat] = useState("");
-  const [istoricChat, setIstoricChat] = useState<MesajChat[]>([]);
+  const [istoricChat, setIstoricChat] = useState<MesajChat>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
-  // Ascultare live: Descarcă mesajele din Neon doar pentru acest client unic (sau anonim)
+  // NOU: Actualizează adresa URL live când utilizatorul tastează în bara de căutare
+  const handleSearchChange = (valoare: string) => {
+    setSearchQuery(valoare);
+    if (valoare.trim()) {
+      router.push(`/?search=${encodeURIComponent(valoare)}`);
+    } else {
+      router.push("/");
+    }
+  };
+
   useEffect(() => {
     if (!isSidebarOpen) return;
-    
     const ID_CLIENT = user?.email || "vizitator_anonim";
-
     const preiaMesajeDinBazaDeDate = async () => {
       try {
         const res = await fetch(`${API_URL}/api/chat?userId=${ID_CLIENT}`);
@@ -53,7 +66,6 @@ export default function Navbar() {
         console.error("Eroare citire chat client:", err);
       }
     };
-
     preiaMesajeDinBazaDeDate();
     const intervalMesaje = setInterval(preiaMesajeDinBazaDeDate, 3000);
     return () => clearInterval(intervalMesaje);
@@ -61,11 +73,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_real");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
 
-    // Deschide chatul automat dacă s-a dat click pe "Întreabă laboratorul"
     if (localStorage.getItem("deschide_hamburger_chat") === "true") {
       setIsSidebarOpen(true);
       const sugestie = localStorage.getItem("chat_sugestie");
@@ -73,24 +82,20 @@ export default function Navbar() {
       localStorage.removeItem("deschide_hamburger_chat");
       localStorage.removeItem("chat_sugestie");
     }
-  }, []);
+  },);
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "register" && !agreeTerms) return;
-    
     setMesaj({ text: "Se procesează...", tip: "info" });
     const endpoint = modalType === "login" ? "/api/login" : "/api/register";
-
     try {
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name: modalType === "register" ? name : undefined }),
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "A apărut o eroare.");
-
+      if (!res.ok) throw new Error(data.message || "Eroare.");
       if (modalType === "login") {
         const loggedUser = { email: data.user?.email || email, name: data.user?.name || "Client" };
         localStorage.setItem("user_real", JSON.stringify(loggedUser));
@@ -110,20 +115,14 @@ export default function Navbar() {
     e.preventDefault();
     if (cart.length === 0) return;
     setSeTrimiteComanda(true);
-
     try {
       const res = await fetch(`${API_URL}/api/comenzi`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientName: user?.name || user?.email || "Client Anonim",
-          phone: telefonComanda,
-          totalAmount: cartTotal,
-        }),
+        body: JSON.stringify({ clientName: user?.name || user?.email || "Client Anonim", phone: telefonComanda, totalAmount: cartTotal }),
       });
-
-      if (!res.ok) throw new Error("Eroare la salvarea comenzii.");
-      alert("Comanda ta dulce a fost trimisă cu succes în laborator! 🎂");
+      if (!res.ok) throw new Error("Eroare salvare comandă.");
+      alert("Comandă trimisă cu succes! 🎂");
       clearCart();
       setTelefonComanda("");
       setIsCartOpen(false);
@@ -136,20 +135,11 @@ export default function Navbar() {
   const trimiteMesajChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mesajChat.trim()) return;
-
     const ID_CLIENT = user?.email || "vizitator_anonim";
     const NUME_CLIENT = user?.name || user?.email || "Vizitator";
-
-    const nouMesaj: MesajChat = {
-      userId: ID_CLIENT,
-      userName: NUME_CLIENT,
-      emitent: "user",
-      text: mesajChat
-    };
-
+    const nouMesaj: MesajChat = { userId: ID_CLIENT, userName: NUME_CLIENT, emitent: "user", text: mesajChat };
     setIstoricChat((prev) => [...prev, nouMesaj]);
     setMesajChat("");
-
     try {
       await fetch(`${API_URL}/api/chat`, {
         method: "POST",
@@ -169,23 +159,36 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-pink-600/90 backdrop-blur-md text-white shadow-md transition-all">
+      <nav className="sticky top-0 z-50 bg-pink-600 text-white shadow-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
               <button onClick={() => setIsSidebarOpen(true)} className="rounded-xl p-2.5 hover:bg-white/10 transition">
                 <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
-              <Link href="/" className="text-2xl font-extrabold tracking-tight text-white">Dulce<span className="font-light text-pink-200">Gust</span></Link>
+              <Link href="/" className="text-2xl font-extrabold tracking-tight text-white">DulceGust</Link>
             </div>
           </div>
-          <div className="relative w-full max-w-xs">
-            <input type="text" placeholder="Caută produse..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full rounded-xl bg-white/20 pl-10 pr-4 py-2 text-sm text-white placeholder-pink-200 outline-none" />
+
+          {/* REPARATĂ: Bară de căutare complet funcțională, cu LUPĂ inclusă stânga */}
+          <div className="relative w-full max-w-md">
+            <input 
+              type="text" 
+              placeholder="Caută produse..." 
+              value={searchQuery} 
+              onChange={(e) => handleSearchChange(e.target.value)} 
+              className="w-full rounded-2xl bg-white/20 pl-11 pr-4 py-3 text-sm text-white placeholder-pink-100 outline-none border border-pink-400/30 focus:bg-white focus:text-gray-900 transition font-medium" 
+            />
+            {/* Pictograma SVG reprezentând LUPA profesionistă */}
+            <svg className="absolute left-4 top-3.5 h-4 w-4 text-pink-100 pointer-events-none transition-colors border-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://w3.org">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
+
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
-              <div onClick={() => setIsCartOpen(true)} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10">
-                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
+              <div onClick={() => setIsCartOpen(true)} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
               {!user ? (
@@ -197,7 +200,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-      {/* POP-UP LATERAL COȘ */}
+      {/* POP-UP COȘ */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
           <div className="w-96 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800">
@@ -231,7 +234,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* HAMBURGER SIDEBAR CU LIVE CHAT CAMERĂ PRIVATĂ */}
+      {/* HAMBURGER SIDEBAR */}
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex">
           <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 relative">
@@ -240,14 +243,12 @@ export default function Navbar() {
                 <span className="font-black text-sm">🧁 Meniu Laborator DulceGust</span>
                 <button onClick={() => setIsSidebarOpen(false)} className="font-bold text-sm">✕</button>
               </div>
-
               <div className="p-4 border-b font-bold text-xs">
                 <ul className="space-y-0.5">
                   <li onClick={() => { setIsSidebarOpen(false); window.location.reload(); }} className="p-2.5 rounded-xl hover:bg-pink-50/50 cursor-pointer">🏠 Acasă / Vitrină</li>
                   <Link href="/admin" onClick={() => setIsSidebarOpen(false)} className="block p-2.5 rounded-xl hover:bg-gray-100">📊 Panou Admin</Link>
                 </ul>
               </div>
-
               <div className="p-4">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">🗨️ Chat Asistență Laborator (Live)</p>
                 <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-64 justify-between shadow-inner">
