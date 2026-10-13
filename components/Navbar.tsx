@@ -20,9 +20,7 @@ export default function Navbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Citim căutarea direct din adresa URL pentru sincronizare perfectă
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
@@ -36,15 +34,11 @@ export default function Navbar() {
 
   const [telefonComanda, setTelefonComanda] = useState("");
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
-
   const [mesajChat, setMesajChat] = useState("");
-  
-  // REPARAT CHIRURGICAL: Adăugat [] pentru a defini corect starea ca LISTĂ (array) de mesaje
-  const [istoricChat, setIstoricChat] = useState<MesajChat[]>([]);
+  const [istoricChat, setIstoricChat] = useState<MesajChat>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
-  // Actualizează adresa URL live când utilizatorul tastează în bara de căutare
   const handleSearchChange = (valoare: string) => {
     setSearchQuery(valoare);
     if (valoare.trim()) {
@@ -54,12 +48,18 @@ export default function Navbar() {
     }
   };
 
-  // Ascultare live: Descarcă mesajele din Neon doar pentru acest client unic
+  // NOU: Funcție care forțează căutarea când dai click fizic pe iconița de lupă
+  const handleApasareLupa = () => {
+    if (searchQuery.trim()) {
+      router.push(`/?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      router.push("/");
+    }
+  };
+
   useEffect(() => {
     if (!isSidebarOpen) return;
-    
     const ID_CLIENT = user?.email || "vizitator_anonim";
-
     const preiaMesajeDinBazaDeDate = async () => {
       try {
         const res = await fetch(`${API_URL}/api/chat?userId=${ID_CLIENT}`);
@@ -71,7 +71,6 @@ export default function Navbar() {
         console.error("Eroare citire chat client:", err);
       }
     };
-
     preiaMesajeDinBazaDeDate();
     const intervalMesaje = setInterval(preiaMesajeDinBazaDeDate, 3000);
     return () => clearInterval(intervalMesaje);
@@ -80,7 +79,6 @@ export default function Navbar() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user_real");
     if (storedUser) setUser(JSON.parse(storedUser));
-
     if (localStorage.getItem("deschide_hamburger_chat") === "true") {
       setIsSidebarOpen(true);
       const sugestie = localStorage.getItem("chat_sugestie");
@@ -88,7 +86,7 @@ export default function Navbar() {
       localStorage.removeItem("deschide_hamburger_chat");
       localStorage.removeItem("chat_sugestie");
     }
-  },);
+  }, []);
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "register" && !agreeTerms) return;
@@ -143,7 +141,6 @@ export default function Navbar() {
     if (!mesajChat.trim()) return;
     const ID_CLIENT = user?.email || "vizitator_anonim";
     const NUME_CLIENT = user?.name || user?.email || "Vizitator";
-    
     const nouMesaj: MesajChat = { userId: ID_CLIENT, userName: NUME_CLIENT, emitent: "user", text: mesajChat };
     setIstoricChat((prev) => [...prev, nouMesaj]);
     setMesajChat("");
@@ -177,16 +174,23 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Bară de căutare complet funcțională, cu LUPĂ inclusă stânga */}
+          {/* MODIFICATĂ: Text gri închis vizibil + Lupa are cursor-pointer și ascultă click-ul */}
           <div className="relative w-full max-w-md">
             <input 
               type="text" 
               placeholder="Caută produse..." 
               value={searchQuery} 
               onChange={(e) => handleSearchChange(e.target.value)} 
-              className="w-full rounded-2xl bg-white/20 pl-11 pr-4 py-3 text-sm text-white placeholder-pink-100 outline-none border border-pink-400/30 focus:bg-white focus:text-gray-900 transition font-medium" 
+              className="w-full rounded-2xl bg-white pl-11 pr-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none border-none font-bold shadow-sm" 
             />
-            <svg className="absolute left-4 top-3.5 h-4 w-4 text-pink-100 pointer-events-none transition-colors border-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://w3.org">
+            <svg 
+              onClick={handleApasareLupa}
+              className="absolute left-4 top-3.5 h-4 w-4 text-gray-400 hover:text-pink-600 cursor-pointer transition-colors" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://w3.org"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>

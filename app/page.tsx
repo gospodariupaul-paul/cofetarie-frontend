@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react"; // MODIFICAT: Adăugat Suspense obligatoriu pentru Next.js
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -18,7 +18,6 @@ interface Produs {
   tag?: string;
 }
 
-// NOU: Am separat logica de filtrare și afișare într-o sub-componentă dedicată
 function VitrinaProduse() {
   const { addToCart } = useCart();
   const searchParams = useSearchParams();
@@ -29,6 +28,7 @@ function VitrinaProduse() {
   const [eroare, setEroare] = useState<string | null>(null);
   const [categorieActiva, setCategorieActiva] = useState<string>("toate");
 
+  // REPARAT: Adresa completă live către serverul tău de pe Render
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
   useEffect(() => {
@@ -37,7 +37,7 @@ function VitrinaProduse() {
         const response = await fetch(`${API_URL}/api/produse`);
         if (!response.ok) throw new Error("Nu s-au putut prelua produsele.");
         const date = await response.json();
-        setProduse(date);
+        setProduse(date || []);
       } catch (err) {
         console.error("Eroare incarcare date:", err);
         setEroare((err as Error).message);
@@ -48,7 +48,7 @@ function VitrinaProduse() {
     incarcaDatele();
   }, [API_URL]);
 
-  const produseFiltrate = produse.filter((p) => {
+  const HospitalFiltrate = produse.filter((p) => {
     if (p.category === "tech-deals") return false;
     const potrivireCategorie = categorieActiva === "toate" || p.category.toLowerCase() === categorieActiva.toLowerCase();
     const potrivireCautare = p.name.toLowerCase().includes(queryCautare.toLowerCase()) || 
@@ -95,13 +95,13 @@ function VitrinaProduse() {
         </div>
       )}
 
-      {!incarcare && !eroare && produseFiltrate.length === 0 && (
+      {!incarcare && !eroare && HospitalFiltrate.length === 0 && (
         <p className="text-center text-gray-400 font-bold py-20 text-sm">Nu s-a găsit niciun produs care să corespundă căutării tale! 🧁</p>
       )}
 
-      {!incarcare && produseFiltrate.length > 0 && (
+      {!incarcare && HospitalFiltrate.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {produseFiltrate.map((produs) => (
+          {HospitalFiltrate.map((produs) => (
             <div key={produs.id} className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between">
               <div>
                 <Link href={`/produs/${produs.id}`} className="block cursor-pointer">
@@ -137,7 +137,6 @@ export default function Home() {
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-gray-800 flex flex-col justify-between">
       <div>
-        {/* Navbar conține useSearchParams dar se execută pe client */}
         <Suspense fallback={<div className="h-20 bg-pink-600 w-full" />}>
           <Navbar />
         </Suspense>
@@ -171,10 +170,7 @@ export default function Home() {
             ))}
           </section>
 
-          {/* REPARAT: Învelit componenta care citește din link în block de Suspense obligatoriu */}
-          <Suspense fallback={
-            <div className="text-center py-20 font-bold text-gray-500">Se încarcă vitrina cu produse...</div>
-          }>
+          <Suspense fallback={<div className="text-center py-20 font-bold text-gray-500">Se încarcă vitrina cu produse...</div>}>
             <VitrinaProduse />
           </Suspense>
 
