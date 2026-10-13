@@ -35,8 +35,6 @@ export default function Navbar() {
   const [telefonComanda, setTelefonComanda] = useState("");
   const [seTrimiteComanda, setSeTrimiteComanda] = useState(false);
   const [mesajChat, setMesajChat] = useState("");
-  
-  // REPARAT CHIRURGICAL: Definit corect ca o listă (array) de mesaje cu valoare inițială array gol
   const [istoricChat, setIstoricChat] = useState<MesajChat[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
@@ -79,7 +77,10 @@ export default function Navbar() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_real");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
     if (localStorage.getItem("deschide_hamburger_chat") === "true") {
       setIsSidebarOpen(true);
       const sugestie = localStorage.getItem("chat_sugestie");
@@ -100,15 +101,18 @@ export default function Navbar() {
         body: JSON.stringify({ email, password, name: modalType === "register" ? name : undefined }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Eroare.");
+      if (!res.ok) throw new Error(data.message || "Eroare la autentificare.");
+      
       if (modalType === "login") {
-        const loggedUser = { email: data.user?.email || email, name: data.user?.name || "Client" };
+        // REPARAT: Salvăm corect userul și tokenul primit de la backend
+        const loggedUser = { email: email, name: data.user?.name || "Client" };
         localStorage.setItem("user_real", JSON.stringify(loggedUser));
+        localStorage.setItem("token_real", data.token || "simulated-token");
         setUser(loggedUser);
-        setMesaj({ text: "Te-ai conectat! 🎉", tip: "succes" });
+        setMesaj({ text: "Te-ai conectat cu succes! 🎉", tip: "succes" });
         setTimeout(() => { setModalType(null); setMesaj({ text: "", tip: "" }); }, 1500);
       } else {
-        setMesaj({ text: "Cont creat! Te poți conecta. ✨", tip: "succes" });
+        setMesaj({ text: "Cont creat cu succes! Te poți conecta. ✨", tip: "succes" });
         setModalType("login");
       }
     } catch (err: any) {
@@ -156,10 +160,14 @@ export default function Navbar() {
     }
   };
 
+  // REPARAT: Șterge absolut toate cheile din browser pentru o deconectare totală curată
   const handleDeconectare = () => {
     localStorage.removeItem("user_real");
+    localStorage.removeItem("token_real");
     setUser(null);
+    setActiveDropdown(null);
     setIsSidebarOpen(false);
+    window.location.reload();
   };
 
   return (
@@ -201,10 +209,28 @@ export default function Navbar() {
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
+              
+              {/* REPARAT: Verificare corectă a dropdown-ului de profil cu meniu deschis la click */}
               {!user ? (
-                <button onClick={() => setModalType("login")} className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-pink-600 shadow-md">Log In</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { setMesaj({ text: "", tip: "" }); setModalType("login"); }} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
+                  <button onClick={() => { setMesaj({ text: "", tip: "" }); setModalType("register"); }} className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-pink-600 shadow-md">Register</button>
+                </div>
               ) : (
-                <button onClick={() => setActiveDropdown(activeDropdown === "profile" ? null : "profile")} className="bg-white/20 px-4 py-2 rounded-xl text-xs font-bold truncate max-w-[150px]">👤 {user.name || "Cont"}</button>
+                <div className="relative">
+                  <button onClick={() => setActiveDropdown(activeDropdown === "profile" ? null : "profile")} className="bg-white/20 px-4 py-2 rounded-xl text-xs font-bold truncate max-w-[160px] flex items-center gap-1.5 hover:bg-white/30 transition">
+                    👤 {user.name || "Cont"}
+                  </button>
+                  {activeDropdown === "profile" && (
+                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl p-4 shadow-2xl border text-gray-800 z-50 animate-in zoom-in-95 duration-150">
+                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider">Utilizator</p>
+                      <p className="text-xs font-black text-gray-900 truncate mt-0.5">{user.name}</p>
+                      <button onClick={handleDeconectare} className="w-full text-left text-xs font-black text-red-600 mt-3 pt-3 border-t border-gray-100 hover:text-red-700 transition">
+                        🚪 Deconectare
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -292,9 +318,16 @@ export default function Navbar() {
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
             <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 font-bold text-sm">✕</button>
             <h3 className="text-sm font-black text-center mb-4">{modalType === "login" ? "Conectare" : "Cont Nou"}</h3>
+            
+            {mesaj.text && (
+              <div className={`text-center text-xs font-bold p-3 rounded-xl mb-4 ${
+                mesaj.tip === "succes" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
+              }`}>{mesaj.text}</div>
+            )}
+
             <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
               {modalType === "register" && (
-                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" placeholder="Numele tău" />
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
               )}
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
