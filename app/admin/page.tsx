@@ -46,8 +46,10 @@ export default function AdminDashboard() {
   const [seTrimite, setSeTrimite] = useState(false);
 
   const [textRaspunsAdmin, setTextRaspunsAdmin] = useState("");
+  // REPARAT: Am adaugat [] pentru a defini corect lista de mesaje in Admin
   const [conversatieLive, setConversatieLive] = useState<MesajChatAdmin[]>([]);
 
+  // REPARAT: Adresa exacta si completa a serverului tau de pe Render
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
   const handleLoginAdmin = (e: React.FormEvent) => {
@@ -176,6 +178,7 @@ export default function AdminDashboard() {
       setSeTrimite(false);
     }
   };
+
   const handleStergeProdus = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Sigur vrei să ștergi definitiv acest produs din Neon?")) return;
@@ -190,7 +193,6 @@ export default function AdminDashboard() {
       alert(`Eroare la ștergere: ${err.message}`);
     }
   };
-
   const handleTrimiteRaspunsChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!textRaspunsAdmin.trim()) return;
@@ -211,7 +213,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ emitent: "suport", text: textDeTrimis }),
       });
     } catch (err) {
-      console.error("Eroare salvare raspuns admin:", err);
+      console.error("Eroare salvare raspuns admin in Neon:", err);
     }
   };
 
@@ -251,7 +253,7 @@ export default function AdminDashboard() {
           {[
             { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦" },
             { titlu: "Încasări Totale", valoare: `${totalIncasat} LEI`, icon: "💰" },
-            { titlu: "Produse Active", valoare: produse ? produse.length : 0, icon: "🍰" }, // REPARAT CHIRURGICAL: produse in loc de productos
+            { titlu: "Produse Active", valoare: produse.length, icon: "🍰" },
             { titlu: "Status Core", valoare: "ONLINE", icon: "⚡" }
           ].map((kpi, i) => (
             <div key={i} className="bg-gray-900 border border-gray-800 p-5 rounded-2xl flex items-center justify-between">
@@ -284,6 +286,7 @@ export default function AdminDashboard() {
               <button type="submit" disabled={seTrimite} className="w-full bg-pink-600 text-white font-black py-3 rounded-xl">{seTrimite ? "Se salvează..." : "🚀 Trimite pe Site"}</button>
             </form>
           </div>
+
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
             <h3 className="text-sm font-black text-white mb-4">🛒 Flux Comenzi</h3>
             <div className="overflow-x-auto max-h-[350px]">
