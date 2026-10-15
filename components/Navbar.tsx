@@ -77,10 +77,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_real");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
+    if (storedUser) setUser(JSON.parse(storedUser));
     if (localStorage.getItem("deschide_hamburger_chat") === "true") {
       setIsSidebarOpen(true);
       const sugestie = localStorage.getItem("chat_sugestie");
@@ -102,9 +99,7 @@ export default function Navbar() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Eroare la autentificare.");
-      
       if (modalType === "login") {
-        // REPARAT: Salvăm corect userul și tokenul primit de la backend
         const loggedUser = { email: email, name: data.user?.name || "Client" };
         localStorage.setItem("user_real", JSON.stringify(loggedUser));
         localStorage.setItem("token_real", data.token || "simulated-token");
@@ -160,7 +155,6 @@ export default function Navbar() {
     }
   };
 
-  // REPARAT: Șterge absolut toate cheile din browser pentru o deconectare totală curată
   const handleDeconectare = () => {
     localStorage.removeItem("user_real");
     localStorage.removeItem("token_real");
@@ -205,12 +199,21 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
+              
+              {/* NOU: Iconița interactivă de CHAT adăugată în bară. Deschide direct hamburgerul la secțiunea de suport */}
+              <button 
+                onClick={() => setIsSidebarOpen(true)} 
+                className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg"
+                title="Deschide Chat Live"
+              >
+                💬
+              </button>
+
               <div onClick={() => setIsCartOpen(true)} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg">
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
               
-              {/* REPARAT: Verificare corectă a dropdown-ului de profil cu meniu deschis la click */}
               {!user ? (
                 <div className="flex items-center gap-2">
                   <button onClick={() => { setMesaj({ text: "", tip: "" }); setModalType("login"); }} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
@@ -222,7 +225,7 @@ export default function Navbar() {
                     👤 {user.name || "Cont"}
                   </button>
                   {activeDropdown === "profile" && (
-                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl p-4 shadow-2xl border text-gray-800 z-50 animate-in zoom-in-95 duration-150">
+                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl p-4 shadow-2xl border text-gray-800 z-50">
                       <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider">Utilizator</p>
                       <p className="text-xs font-black text-gray-900 truncate mt-0.5">{user.name}</p>
                       <button onClick={handleDeconectare} className="w-full text-left text-xs font-black text-red-600 mt-3 pt-3 border-t border-gray-100 hover:text-red-700 transition">
@@ -318,16 +321,9 @@ export default function Navbar() {
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
             <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 font-bold text-sm">✕</button>
             <h3 className="text-sm font-black text-center mb-4">{modalType === "login" ? "Conectare" : "Cont Nou"}</h3>
-            
-            {mesaj.text && (
-              <div className={`text-center text-xs font-bold p-3 rounded-xl mb-4 ${
-                mesaj.tip === "succes" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
-              }`}>{mesaj.text}</div>
-            )}
-
             <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
               {modalType === "register" && (
-                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 outline-none" placeholder="Numele tău" />
               )}
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
