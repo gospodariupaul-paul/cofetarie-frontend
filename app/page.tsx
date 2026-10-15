@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -28,7 +27,6 @@ function VitrinaProduse() {
   const [eroare, setEroare] = useState<string | null>(null);
   const [categorieActiva, setCategorieActiva] = useState<string>("toate");
 
-  // REPARAT: Adresa completă live către serverul tău de pe Render
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
   useEffect(() => {
@@ -142,13 +140,22 @@ export default function Home() {
         </Suspense>
 
         <main>
-          {/* Hero Section */}
-          <section className="max-w-7xl mx-auto px-6 py-32 text-center relative overflow-hidden rounded-3xl my-6 bg-gray-950 text-white shadow-xl">
-            <div className="relative z-10 max-w-3xl mx-auto">
+          {/* REPARAT CLAR: Adăugat o cale securizată absolută './hero-cake.jpg' și poziționare absolută forțată în fundal */}
+          <section className="max-w-7xl mx-auto px-6 py-32 text-center relative overflow-hidden rounded-3xl my-6 bg-gray-950 text-white shadow-xl min-h-[350px]">
+            <div className="absolute inset-0 w-full h-full opacity-40 z-0">
+              <img
+                src="./hero-cake.jpg"
+                alt="Cofetaria Dulce Gust Background"
+                className="w-full h-full object-cover object-center absolute inset-0 block"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-950/40 to-transparent z-10" />
+            
+            <div className="relative z-20 max-w-3xl mx-auto">
               <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white">
                 Cofetăria <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-300">Dulce Gust</span>
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-gray-200 font-medium">
+              <p className="mt-6 text-sm md:text-base text-gray-200 font-bold max-w-xl mx-auto leading-relaxed">
                 Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru momente de neuitat.
               </p>
             </div>
