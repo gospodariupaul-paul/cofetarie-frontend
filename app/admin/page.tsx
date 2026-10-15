@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface Comanda {
@@ -32,7 +33,7 @@ interface MesajChatAdmin {
 
 export default function AdminDashboard() {
   const [esteAdmin, setEsteAdmin] = useState<boolean>(false);
-  const [codAcces, setCodAcces] = useState<string>("");
+  const [seVerifica, setSeVerifica] = useState<boolean>(true);
   const [comenzi, setComenzi] = useState<Comanda[]>([]);
   const [produse, setProduse] = useState<Produs[]>([]);
   const [incarcare, setIncarcare] = useState<boolean>(true);
@@ -47,28 +48,31 @@ export default function AdminDashboard() {
   const [tagProdus, setTagProdus] = useState("");
   const [seTrimite, setSeTrimite] = useState(false);
 
-  // NOU: Gestiune Camere Chat Separate pentru Admin
   const [toateMesajeleBaza, setToateMesajeleBaza] = useState<MesajChatAdmin[]>([]);
   const [clientSelectatChat, setClientSelectatChat] = useState<string | null>(null);
   const [textRaspunsAdmin, setTextRaspunsAdmin] = useState("");
 
+  const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
-  const handleLoginAdmin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (codAcces === "admin1234") {
-      setEsteAdmin(true);
-      localStorage.setItem("role_admin", "true");
-    } else {
-      alert("Cod de acces incorect!");
-    }
-  };
-
+  // REPARAT SECURITATEA: Verificăm dacă userul logat are e-mailul de admin oficial
   useEffect(() => {
-    if (localStorage.getItem("role_admin") === "true") {
-      setEsteAdmin(true);
+    const storedUser = localStorage.getItem("user_real");
+    if (storedUser) {
+      const dateUser = JSON.parse(storedUser);
+      // RESTRICȚIE ABSOLUTĂ: Schimbă 'admin@dulcegust.ro' cu emailul tău pe care vrei să-l folosești ca admin
+      if (dateUser.email === "admin@dulcegust.ro") {
+        setEsteAdmin(true);
+      } else {
+        alert("Acces refuzat! Nu ai permisiuni de administrator.");
+        router.push("/");
+      }
+    } else {
+      alert("Trebuie să te conectezi mai întâi cu un cont de administrator.");
+      router.push("/");
     }
-  }, []);
+    setSeVerifica(false);
+  }, [router]);
   const incarcaDateleAdmin = async () => {
     try {
       const resProd = await fetch(`${API_URL}/api/produse`);
@@ -88,11 +92,10 @@ export default function AdminDashboard() {
     }
   };
 
-  // NOU: Descarcă automat absolut toate mesajele din Neon la fiecare 3 secunde pentru a crea camerele
   useEffect(() => {
     if (!esteAdmin) return;
     
-    const preiaToateMesajeleChat = async () => {
+    const preiaChatLive = async () => {
       try {
         const res = await fetch(`${API_URL}/api/chat`);
         if (res.ok) {
@@ -100,12 +103,12 @@ export default function AdminDashboard() {
           setToateMesajeleBaza(dateChat || []);
         }
       } catch (err) {
-        console.error("Eroare preluare chat global admin:", err);
+        console.error("Eroare preluare live chat admin:", err);
       }
     };
 
-    preiaToateMesajeleChat();
-    const intervalChat = setInterval(preiaToateMesajeleChat, 3000);
+    preiaChatLive();
+    const intervalChat = setInterval(preiaChatLive, 3000);
     return () => clearInterval(intervalChat);
   }, [esteAdmin, API_URL]);
 
@@ -114,10 +117,8 @@ export default function AdminDashboard() {
     incarcaDateleAdmin();
   }, [esteAdmin]);
 
-  // Filtrăm mesajele pe ecran doar pentru camera selectată (clientul selectat)
   const mesajeCameraCurenta = toateMesajeleBaza.filter((m) => m.userId === clientSelectatChat);
 
-  // Extragem o listă unică cu clienții care au trimis mesaje (pentru meniul stâng de camere)
   const clientiUniciCuMesaje = Array.from(new Set(toateMesajeleBaza.map((m) => m.userId))).map((id) => {
     const gasit = toateMesajeleBaza.find((m) => m.userId === id);
     return { userId: id, userName: gasit?.userName || "Client" };
@@ -203,7 +204,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Trimite răspunsul către clientul selectat în Neon PostgreSQL
   const handleTrimiteRaspunsChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!textRaspunsAdmin.trim() || !clientSelectatChat) return;
@@ -231,27 +231,21 @@ export default function AdminDashboard() {
       console.error("Eroare salvare răspuns admin:", err);
     }
   };
-  if (!esteAdmin) {
+  if (seVerifica) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
-        <div className="bg-gray-900 border border-gray-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl">
-          <h2 className="text-xl font-black text-center mb-4">DulceGust OS</h2>
-          <form onSubmit={handleLoginAdmin} className="space-y-4">
-            <input type="password" required value={codAcces} onChange={(e) => setCodAcces(e.target.value)} className="w-full bg-gray-950 border border-gray-800 text-white rounded-xl px-4 py-3 text-xs outline-none" placeholder="Cod master admin" />
-            <button type="submit" className="w-full bg-pink-600 text-white font-bold py-3 rounded-xl">Intră în Panou</button>
-          </form>
-        </div>
+        <div className="font-bold text-sm">Se verifică acreditările DulceGust...</div>
       </div>
     );
   }
+
+  if (!esteAdmin) return null;
 
   const totalIncasat = comenzi.reduce((sum, c) => sum + (c.totalAmount || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-800 pb-6 mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-black text-white">Admin Dashboard 📊</h1>
@@ -259,11 +253,10 @@ export default function AdminDashboard() {
           </div>
           <div className="flex gap-3">
             <Link href="/" className="bg-gray-900 border border-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl transition">🏠 Vezi Site</Link>
-            <button onClick={() => { localStorage.removeItem("role_admin"); setEsteAdmin(false); }} className="bg-red-950 text-red-400 text-xs font-bold px-4 py-2.5 rounded-xl">🔒 Ieșire</button>
+            <button onClick={() => { localStorage.removeItem("user_real"); localStorage.removeItem("token_real"); router.push("/"); }} className="bg-red-950 text-red-400 text-xs font-bold px-4 py-2.5 rounded-xl">🔒 Ieșire Securizată</button>
           </div>
         </div>
 
-        {/* KPI-uri */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             { titlu: "Total Comenzi", valoare: comenzi.length, icon: "📦" },
@@ -280,10 +273,7 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
-        {/* Grid Split pe 4 Coloane */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          
-          {/* Formular adăugare */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm h-fit">
             <h3 className="text-xs font-black text-white mb-4">{idProdusEditat ? "📝 Modifică Produs" : "➕ Încarcă Produs"}</h3>
             <form onSubmit={handleSalveazaSauModificaProdus} className="space-y-4 text-xs font-bold">
@@ -301,7 +291,6 @@ export default function AdminDashboard() {
             </form>
           </div>
 
-          {/* Comenzi */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
             <h3 className="text-sm font-black text-white mb-4">🛒 Flux Comenzi</h3>
             <table className="w-full text-left text-xs">
@@ -316,7 +305,6 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Inventar Produse */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 h-fit">
             <h3 className="text-sm font-black text-white mb-4">📋 Inventar Produse</h3>
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -332,12 +320,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* CHAT CHIRURGICAL PE CAMERE INDIVIDUALE DE CLIENȚI */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col justify-between h-[450px]">
             <div>
               <h3 className="text-sm font-black text-white mb-3">💬 Suport Clienți (Camere Live)</h3>
-              
-              {/* Selectorul de Camere active de Clienți */}
               <div className="flex gap-1.5 overflow-x-auto pb-2 border-b border-gray-800 mb-3">
                 {clientiUniciCuMesaje.length === 0 ? <span className="text-[10px] text-gray-500 font-bold">Nicio cameră activă.</span> :
                   clientiUniciCuMesaje.map((c) => (
@@ -348,13 +333,11 @@ export default function AdminDashboard() {
                         clientSelectatChat === c.userId ? "bg-pink-600 text-white shadow" : "bg-gray-950 text-gray-400 hover:text-gray-200"
                       }`}
                     >
-                      {c.userName.split("@")[0]}
+                      {c.userName}
                     </button>
                   ))
                 }
               </div>
-
-              {/* Istoricul camerei selectate */}
               <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 flex flex-col gap-1">
                 {!clientSelectatChat ? (
                   <p className="text-center text-[10px] text-gray-500 font-bold py-10">Alege o cameră de sus pentru a discuta live cu clientul!</p>
@@ -367,8 +350,6 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-
-            {/* Formular răspuns în camera curentă */}
             <form onSubmit={handleTrimiteRaspunsChat} className="mt-3 flex gap-1.5 border-t border-gray-800/60 pt-2">
               <input type="text" disabled={!clientSelectatChat} value={textRaspunsAdmin} onChange={(e) => setTextRaspunsAdmin(e.target.value)} placeholder={clientSelectatChat ? "Răspunde în această cameră..." : "Selectează o cameră mai întâi..."} className="w-full bg-gray-950 border rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-pink-500 disabled:opacity-40" />
               <button type="submit" disabled={!clientSelectatChat} className="bg-pink-600 text-white px-3 rounded-lg text-xs font-black disabled:opacity-40">➔</button>
