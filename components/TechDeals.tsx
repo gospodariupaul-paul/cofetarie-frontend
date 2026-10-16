@@ -33,16 +33,17 @@ export default function TechDeals() {
             p.category && p.category.toLowerCase().trim().includes("tech")
           );
           
-          // Dacă baza de date are produse tech, le folosim
           if (filtrate.length > 0) {
             setProduseTech(filtrate);
           } else {
-            // FALLBACK INDESTRUCTIBIL: Dacă nu sunt produse în Neon, încărcăm uneltele automat în carusel
+            // Produsele tale oficiale din imagine, multiplicate pentru a asigura un carusel lung derulabil
             setProduseTech([
               { id: "tech-1", name: "Imprimantă 3D Alimentară", description: "Creează decoruri spectaculoase din ciocolată reîncărcabilă și zahăr ars.", price: 2450, category: "tech-deals", icon: "🖨️", tag: "Hot Deal", discount: 30 },
               { id: "tech-2", name: "Aerograf Digital Pro", description: "Sistem automat de pulverizare a culorilor cu senzori de precizie microscopică.", price: 420, category: "tech-deals", icon: "🎨", tag: "Best Seller", discount: 15 },
               { id: "tech-3", name: "Mixer Planetar Inteligent", description: "Control tactil și monitorizare prin aplicație mobilă a densității cremelor.", price: 890, category: "tech-deals", icon: "🥣", tag: "Stoc Limitat", discount: 20 },
-              { id: "tech-4", name: "Cuptor Convecție Core-OS", description: "Distribuție perfectă a căldurii prin 12 senzori termici independenți.", price: 3100, category: "tech-deals", icon: "🔥", tag: "Premium Tech", discount: 25 }
+              { id: "tech-4", name: "Cuptor Convecție Core-OS", description: "Distribuție perfectă a căldurii prin 12 senzori termici independenți.", price: 3100, category: "tech-deals", icon: "🔥", tag: "Premium Tech", discount: 25 },
+              { id: "tech-5", name: "Formă Silicon Inteligentă", description: "Senzori flexibili integrați pentru monitorizarea coacerii în timp real.", price: 180, category: "tech-deals", icon: "🧼", tag: "Tech Accesoriu", discount: 10 },
+              { id: "tech-6", name: "Cântar Molecular Pro", description: "Acuratețe de până la 0.01 grame cu ecran LED și conectivitate Bluetooth.", price: 350, category: "tech-deals", icon: "⚖️", tag: "Nou", discount: 15 }
             ]);
           }
         }
@@ -57,20 +58,20 @@ export default function TechDeals() {
 
   const gliseazaStanga = () => {
     if (caruselRef.current) {
-      caruselRef.current.scrollBy({ left: -300, behavior: "smooth" });
+      caruselRef.current.scrollBy({ left: -360, behavior: "smooth" });
     }
   };
 
   const gliseazaDreapta = () => {
     if (caruselRef.current) {
-      caruselRef.current.scrollBy({ left: 300, behavior: "smooth" });
+      caruselRef.current.scrollBy({ left: 360, behavior: "smooth" });
     }
   };
 
-  if (incarcare) return <div className="text-center py-10 font-bold text-gray-400 text-xs">Se încarcă caruselul tehnologic...</div>;
+  if (incarcare) return <div className="text-center py-10 font-bold text-gray-400 text-xs">Se încarcă caruselul...</div>;
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-purple-50/30 to-pink-50/10 rounded-3xl my-12 border border-purple-100/20 relative">
+    <section className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-purple-50/30 to-pink-50/10 rounded-3xl my-12 border border-purple-100/20 relative overflow-hidden">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
         <div>
           <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md uppercase tracking-wider">• UTILAJE ȘI UNELTE PREMIUM</span>
@@ -81,16 +82,17 @@ export default function TechDeals() {
           <div className="bg-white border shadow-sm px-3 py-1.5 rounded-xl text-[11px] font-bold text-gray-500">
             OFERTE LIMITATE <span className="text-purple-600 font-black animate-pulse">⚡ LIVE LAB</span>
           </div>
-          <div className="flex gap-2">
-            <button onClick={gliseazaStanga} className="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-700 font-black hover:bg-gray-50 transition shadow-sm active:scale-95 flex items-center justify-center">←</button>
-            <button onClick={gliseazaDreapta} className="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-700 font-black hover:bg-gray-50 transition shadow-sm active:scale-95 flex items-center justify-center">→</button>
+          <div className="flex gap-2 z-20">
+            <button onClick={gliseazaStanga} className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-800 font-black hover:bg-gray-100 transition shadow-sm active:scale-95 flex items-center justify-center text-sm">←</button>
+            <button onClick={gliseazaDreapta} className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-800 font-black hover:bg-gray-100 transition shadow-sm active:scale-95 flex items-center justify-center text-sm">→</button>
           </div>
         </div>
       </div>
 
+      {/* MODIFICAT: scrollbar-none adăugat pentru derulare infinită orizontală fără bare vizuale */}
       <div 
         ref={caruselRef}
-        className="flex gap-6 overflow-x-auto pb-4 pt-2 scroll-smooth snap-x snap-mandatory"
+        className="flex gap-6 overflow-x-auto pb-4 pt-2 scroll-smooth snap-x snap-mandatory overflow-y-hidden"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {produseTech.map((produs) => {
@@ -100,7 +102,7 @@ export default function TechDeals() {
           return (
             <div 
               key={produs.id} 
-              className="w-[290px] shrink-0 snap-start relative rounded-3xl bg-white border border-purple-100/40 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between overflow-hidden"
+              className="w-[320px] md:w-[340px] shrink-0 snap-start relative rounded-3xl bg-white border border-purple-100/40 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between overflow-hidden"
             >
               <div className="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-full shadow z-10">
                 -{procentReducere}%
@@ -112,7 +114,7 @@ export default function TechDeals() {
                     {produs.icon && produs.icon.startsWith("data:image") ? (
                       <img src={produs.icon} alt={produs.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-4xl">{produs.icon || "⚡"}</span>
+                      <span className="text-5xl">{produs.icon || "⚡"}</span>
                     )}
                     {produs.tag && (
                       <span className="absolute bottom-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-md bg-white border text-purple-600 shadow-sm">
