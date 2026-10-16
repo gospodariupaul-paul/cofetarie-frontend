@@ -36,7 +36,6 @@ export default function TechDeals() {
           if (filtrate.length > 0) {
             setProduseTech(filtrate);
           } else {
-            // Produsele tale oficiale din imagine, multiplicate pentru a asigura un carusel lung derulabil
             setProduseTech([
               { id: "tech-1", name: "Imprimantă 3D Alimentară", description: "Creează decoruri spectaculoase din ciocolată reîncărcabilă și zahăr ars.", price: 2450, category: "tech-deals", icon: "🖨️", tag: "Hot Deal", discount: 30 },
               { id: "tech-2", name: "Aerograf Digital Pro", description: "Sistem automat de pulverizare a culorilor cu senzori de precizie microscopică.", price: 420, category: "tech-deals", icon: "🎨", tag: "Best Seller", discount: 15 },
@@ -56,40 +55,57 @@ export default function TechDeals() {
     incarcaTech();
   }, [API_URL]);
 
+  // NOU: Efect inteligent pentru derulare automată continuă la fiecare 3 secunde
+  useEffect(() => {
+    if (produseTech.length === 0) return;
+
+    const autoDerulare = () => {
+      if (caruselRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = caruselRef.current;
+        
+        // Dacă a ajuns aproape de capătul din dreapta, resetează lin la început
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          caruselRef.current.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          // Altfel, înaintează cu lățimea unui card complet + spațiul dintre ele
+          caruselRef.current.scrollBy({ left: 360, behavior: "smooth" });
+        }
+      }
+    };
+
+    const intervalCarusel = setInterval(autoDerulare, 3000);
+    return () => clearInterval(intervalCarusel);
+  }, [produseTech]);
+
   const gliseazaStanga = () => {
-    if (caruselRef.current) {
-      caruselRef.current.scrollBy({ left: -360, behavior: "smooth" });
-    }
+    if (caruselRef.current) caruselRef.current.scrollBy({ left: -360, behavior: "smooth" });
   };
 
   const gliseazaDreapta = () => {
-    if (caruselRef.current) {
-      caruselRef.current.scrollBy({ left: 360, behavior: "smooth" });
-    }
+    if (caruselRef.current) caruselRef.current.scrollBy({ left: 360, behavior: "smooth" });
   };
 
-  if (incarcare) return <div className="text-center py-10 font-bold text-gray-400 text-xs">Se încarcă caruselul...</div>;
+  if (incarcare) return <div className="text-center py-10 font-bold text-gray-400 text-xs">Se inițializează mecanismul...</div>;
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-purple-50/30 to-pink-50/10 rounded-3xl my-12 border border-purple-100/20 relative overflow-hidden">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
         <div>
-          <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md uppercase tracking-wider">• UTILAJE ȘI UNELTE PREMIUM</span>
+          <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md uppercase tracking-wider">• AUTOMATIZARE INTELIGENTĂ</span>
           <h2 className="text-3xl font-black text-gray-900 mt-2">Top Tech <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Hot Deals</span></h2>
         </div>
         
         <div className="flex items-center gap-4 self-end sm:self-auto">
           <div className="bg-white border shadow-sm px-3 py-1.5 rounded-xl text-[11px] font-bold text-gray-500">
-            OFERTE LIMITATE <span className="text-purple-600 font-black animate-pulse">⚡ LIVE LAB</span>
+            DERULARE AUTOMATĂ <span className="text-purple-600 font-black animate-pulse">⚙️ ACTIVE</span>
           </div>
           <div className="flex gap-2 z-20">
-            <button onClick={gliseazaStanga} className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-800 font-black hover:bg-gray-100 transition shadow-sm active:scale-95 flex items-center justify-center text-sm">←</button>
-            <button onClick={gliseazaDreapta} className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-800 font-black hover:bg-gray-100 transition shadow-sm active:scale-95 flex items-center justify-center text-sm">→</button>
+            <button onClick={gliseazaStanga} className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-800 font-black hover:bg-gray-100 transition shadow-sm flex items-center justify-center text-sm">←</button>
+            <button onClick={gliseazaDreapta} className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-800 font-black hover:bg-gray-100 transition shadow-sm flex items-center justify-center text-sm">→</button>
           </div>
         </div>
       </div>
 
-      {/* MODIFICAT: scrollbar-none adăugat pentru derulare infinită orizontală fără bare vizuale */}
       <div 
         ref={caruselRef}
         className="flex gap-6 overflow-x-auto pb-4 pt-2 scroll-smooth snap-x snap-mandatory overflow-y-hidden"
