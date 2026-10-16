@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import TechDeals from "@/components/TechDeals";
+import TechDeals from "@/components/TechDeals"; // Asigură importul caruselului corect
 import { useCart } from "@/context/CartContext";
 
 interface Produs {
@@ -140,7 +141,7 @@ export default function Home() {
         </Suspense>
 
         <main>
-          {/* REPARAT CLAR: Adăugat o cale securizată absolută './hero-cake.jpg' și poziționare absolută forțată în fundal */}
+          {/* Hero Section */}
           <section className="max-w-7xl mx-auto px-6 py-32 text-center relative overflow-hidden rounded-3xl my-6 bg-gray-950 text-white shadow-xl min-h-[350px]">
             <div className="absolute inset-0 w-full h-full opacity-40 z-0">
               <img
@@ -181,6 +182,7 @@ export default function Home() {
             <VitrinaProduse />
           </Suspense>
 
+          {/* REPARAT: Apelarea caruselului TechDeals direct sub vitrina digitală */}
           <TechDeals />
         </main>
       </div>
