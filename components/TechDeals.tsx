@@ -29,8 +29,10 @@ export default function TechDeals() {
         const res = await fetch(`${API_URL}/api/produse`);
         if (res.ok) {
           const date = await res.json();
-          // Filtrare strictă pentru ofertele tehnologice specifice laboratorului
-          const filtrate = date.filter((p: ProdusTech) => p.category === "tech-deals");
+          // REPARAT: Filtrare sigură care nu ține cont de litere mari/mici sau spații suplimentare
+          const filtrate = date.filter((p: ProdusTech) => 
+            p.category && p.category.toLowerCase().trim().includes("tech")
+          );
           setProduseTech(filtrate);
         }
       } catch (err) {
@@ -61,14 +63,13 @@ export default function TechDeals() {
     <section className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-purple-50/30 to-pink-50/10 rounded-3xl my-12 border border-purple-100/20 relative">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
         <div>
-          <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md uppercase tracking-wider">• HI-TECH LAB</span>
+          <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md uppercase tracking-wider">• UTILAJE ȘI UNELTE PREMIUM</span>
           <h2 className="text-3xl font-black text-gray-900 mt-2">Top Tech <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Hot Deals</span></h2>
         </div>
         
-        {/* Controale glisare butoane */}
         <div className="flex items-center gap-4 self-end sm:self-auto">
           <div className="bg-white border shadow-sm px-3 py-1.5 rounded-xl text-[11px] font-bold text-gray-500">
-            OFERTE LIMITATE <span className="text-red-500 font-black animate-pulse">⚡ LIVE</span>
+            OFERTE LIMITATE <span className="text-purple-600 font-black animate-pulse">⚡ LIVE LAB</span>
           </div>
           <div className="flex gap-2">
             <button onClick={gliseazaStanga} className="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-700 font-black hover:bg-gray-50 transition shadow-sm active:scale-95 flex items-center justify-center">←</button>
@@ -77,7 +78,6 @@ export default function TechDeals() {
         </div>
       </div>
 
-      {/* Caruselul Orizontal */}
       <div 
         ref={caruselRef}
         className="flex gap-6 overflow-x-auto pb-4 pt-2 scroll-smooth snap-x snap-mandatory overflow-y-hidden"
