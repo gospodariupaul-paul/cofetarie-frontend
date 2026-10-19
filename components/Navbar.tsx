@@ -70,16 +70,19 @@ export default function Navbar() {
       router.push("/");
     }
   };
+  // REPARAT COMPLET: Adăugată verificare de siguranță p.name pentru a preveni blocarea căutării
   const executaCautareSauRedirectionare = (textCautat: string) => {
     if (!textCautat.trim()) {
       router.push("/");
       return;
     }
 
-    const produsGasit = listaProduse.find((p) => 
-      p.name.toLowerCase().trim() === textCautat.toLowerCase().trim() ||
-      p.name.toLowerCase().trim().includes(textCautat.toLowerCase().trim())
-    );
+    const textCurat = textCautat.toLowerCase().trim();
+
+    const produsGasit = listaProduse.find((p) => {
+      if (!p.name) return false; // Protecție împotriva produselor fără nume din Neon
+      return p.name.toLowerCase().trim() === textCurat || p.name.toLowerCase().trim().includes(textCurat);
+    });
 
     if (produsGasit) {
       router.push(`/produs/${produsGasit.id}`);
@@ -267,7 +270,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-      {/* Pop-up coș lateral */}
+      {/* Pop-up coș */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
           <div className="w-96 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800">
@@ -343,7 +346,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Modal Autentificare Refăcut */}
+      {/* Modal Autentificare */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
