@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import TechDeals from "@/components/TechDeals"; // Asigură importul caruselului corect
+import TechDeals from "@/components/TechDeals";
 import { useCart } from "@/context/CartContext";
 
 interface Produs {
@@ -47,11 +47,16 @@ function VitrinaProduse() {
     incarcaDatele();
   }, [API_URL]);
 
-  const HospitalFiltrate = produse.filter((p) => {
-    if (p.category === "tech-deals") return false;
-    const potrivireCategorie = categorieActiva === "toate" || p.category.toLowerCase() === categorieActiva.toLowerCase();
-    const potrivireCautare = p.name.toLowerCase().includes(queryCautare.toLowerCase()) || 
-                             p.description.toLowerCase().includes(queryCautare.toLowerCase());
+  // REPARAT COMPLET: Redenumit din HospitalFiltrate în produseFiltrate pentru a citi din Neon corect
+  const produseFiltrate = produse.filter((p) => {
+    if (!p.category) return false;
+    if (p.category.toLowerCase().trim() === "tech-deals") return false;
+    
+    const potrivireCategorie = categorieActiva === "toate" || p.category.toLowerCase().trim() === categorieActiva.toLowerCase().trim();
+    const potrivireCautare = !queryCautare.trim() || 
+                             (p.name && p.name.toLowerCase().includes(queryCautare.toLowerCase())) || 
+                             (p.description && p.description.toLowerCase().includes(queryCautare.toLowerCase()));
+    
     return potrivireCategorie && potrivireCautare;
   });
 
@@ -84,7 +89,7 @@ function VitrinaProduse() {
       {incarcare && (
         <div className="flex justify-center items-center py-20 gap-3">
           <div className="w-6 h-6 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
-          <span className="font-bold text-gray-500">Se încarcă bunătățile din server...</span>
+          <span className="font-bold text-gray-500">Se încarcă bunătățile din laborator...</span>
         </div>
       )}
 
@@ -94,13 +99,13 @@ function VitrinaProduse() {
         </div>
       )}
 
-      {!incarcare && !eroare && HospitalFiltrate.length === 0 && (
-        <p className="text-center text-gray-400 font-bold py-20 text-sm">Nu s-a găsit niciun produs care să corespundă căutării tale! 🧁</p>
+      {!incarcare && !eroare && produseFiltrate.length === 0 && (
+        <p className="text-center text-gray-400 font-bold py-20 text-sm">Nu s-a găsit niciun produs disponibil în vitrină! 🧁</p>
       )}
 
-      {!incarcare && HospitalFiltrate.length > 0 && (
+      {!incarcare && produseFiltrate.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {HospitalFiltrate.map((produs) => (
+          {produseFiltrate.map((produs) => (
             <div key={produs.id} className="group relative rounded-3xl bg-white border border-pink-100/50 p-5 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col justify-between">
               <div>
                 <Link href={`/produs/${produs.id}`} className="block cursor-pointer">
@@ -182,7 +187,6 @@ export default function Home() {
             <VitrinaProduse />
           </Suspense>
 
-          {/* REPARAT: Apelarea caruselului TechDeals direct sub vitrina digitală */}
           <TechDeals />
         </main>
       </div>
