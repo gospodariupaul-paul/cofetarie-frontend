@@ -70,7 +70,7 @@ export default function Navbar() {
       router.push("/");
     }
   };
-  // REPARAT COMPLET: Adăugată verificare de siguranță p.name pentru a preveni blocarea căutării
+  // REPARATĂ SECURE: Logica de căutare avansată care face legătura directă cu ID-ul produsului din Neon
   const executaCautareSauRedirectionare = (textCautat: string) => {
     if (!textCautat.trim()) {
       router.push("/");
@@ -79,14 +79,18 @@ export default function Navbar() {
 
     const textCurat = textCautat.toLowerCase().trim();
 
+    // Verifică potrivirea exactă sau parțială în baza de date localizată în memorie
     const produsGasit = listaProduse.find((p) => {
-      if (!p.name) return false; // Protecție împotriva produselor fără nume din Neon
-      return p.name.toLowerCase().trim() === textCurat || p.name.toLowerCase().trim().includes(textCurat);
+      if (!p || !p.name) return false;
+      const numeProdusCc = p.name.toLowerCase().trim();
+      return numeProdusCc === textCurat || numeProdusCc.includes(textCurat);
     });
 
-    if (produsGasit) {
+    if (produsGasit && produsGasit.id) {
+      // Trimite clientul direct pe pagina produsului ales (Ex: /produs/id)
       router.push(`/produs/${produsGasit.id}`);
     } else {
+      // Dacă este o căutare generală, aplică filtrul pe prima pagină
       router.push(`/?search=${encodeURIComponent(textCautat)}`);
     }
   };
@@ -130,7 +134,7 @@ export default function Navbar() {
       localStorage.removeItem("deschide_hamburger_chat");
       localStorage.removeItem("chat_sugestie");
     }
-  }, [user]);
+  }, []);
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "register" && !agreeTerms) return;
@@ -270,7 +274,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-      {/* Pop-up coș */}
+      {/* Pop-up coș lateral */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
           <div className="w-96 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800">
