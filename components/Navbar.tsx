@@ -178,7 +178,6 @@ export default function Navbar() {
       setSeTrimiteComanda(false);
     }
   };
-
   const trimiteMesajChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mesajChat.trim()) return;
@@ -206,6 +205,7 @@ export default function Navbar() {
     setIsSidebarOpen(false);
     window.location.reload();
   };
+
   return (
     <>
       <nav className="sticky top-0 z-50 bg-pink-600 text-white shadow-md">
@@ -267,8 +267,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
-      {/* Pop-up coș și Sidebar chat rămân active dedesubt neschimbate */}
+      {/* Pop-up coș lateral */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
           <div className="w-96 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800">
@@ -344,7 +343,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Modal Autentificare */}
+      {/* Modal Autentificare Refăcut */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
@@ -357,3 +356,20 @@ export default function Navbar() {
               }`}>{mesaj.text}</div>
             )}
 
+            <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
+              {modalType === "register" && (
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
+              )}
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
+              {modalType === "register" && (
+                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
+              )}
+              <button type="submit" className="w-full bg-pink-600 text-white font-black py-3.5 rounded-xl shadow-md">{modalType === "login" ? "Conectare" : "Creează cont"}</button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
