@@ -184,7 +184,6 @@ export default function Navbar() {
     }
   };
 
-  // RESTAURATĂ COMPLET: Funcția lipsă care a blocat build-ul Next.js
   const trimiteMesajChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mesajChat.trim()) return;
@@ -254,10 +253,12 @@ export default function Navbar() {
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
+              
+              {/* REPARAT: Logica curată pentru modalType. Setează direct tipul pop-up-ului */}
               {!user ? (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setModalType("login")} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
-                  <button onClick={() => setModalType("register")} className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-pink-600 shadow-md">Register</button>
+                  <button onClick={() => setModalType("register")} className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-pink-600 shadow-md transition">Register</button>
                 </div>
               ) : (
                 <div className="relative">
@@ -338,7 +339,6 @@ export default function Navbar() {
                       ))
                     )}
                   </div>
-                  {/* Conectat perfect la funcția restaurată trimiteMesajChat */}
                   <form onSubmit={trimiteMesajChat} className="mt-2 flex gap-1.5 border-t border-gray-800 pt-2 shrink-0">
                     <input type="text" value={mesajChat} onChange={(e) => setMesajChat(e.target.value)} placeholder="Pune o întrebare..." className="w-full bg-gray-900 text-white rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
                     <button type="submit" className="bg-pink-600 text-white px-2.5 rounded-lg text-[10px] font-bold">➔</button>
@@ -350,6 +350,34 @@ export default function Navbar() {
             <div className="p-4 bg-gray-50 text-center text-[10px] font-bold text-gray-400 border-t">📍 Str. Dulce nr. 10, Iași</div>
           </div>
           <div className="flex-1" onClick={() => setIsSidebarOpen(false)} />
+        </div>
+      )}
+
+      {/* Pop-up Modale Autentificare */}
+      {modalType && (
+        <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
+            <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 font-bold text-sm">✕</button>
+            <h3 className="text-sm font-black text-center mb-4">{modalType === "login" ? "Conectare" : "Cont Nou"}</h3>
+            
+            {mesaj.text && (
+              <div className={`text-center text-xs font-bold p-3 rounded-xl mb-4 ${
+                mesaj.tip === "succes" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
+              }`}>{mesaj.text}</div>
+            )}
+
+            <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
+              {modalType === "register" && (
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
+              )}
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
+              {modalType === "register" && (
+                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
+              )}
+              <button type="submit" className="w-full bg-pink-600 text-white font-black py-3.5 rounded-xl shadow-md">{modalType === "login" ? "Conectare" : "Creează cont"}</button>
+            </form>
+          </div>
         </div>
       )}
     </>
