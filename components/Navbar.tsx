@@ -34,7 +34,9 @@ export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
-  const [activeDropdown, setActiveDropdown] = useState<"favorites" | "notifications" | "profile" | null>(null);
+  
+  // MODIFICAT: Gestionăm starea dropdown-urilor active (inclusiv notificările și profilul)
+  const [activeDropdown, setActiveDropdown] = useState<"notifications" | "profile" | null>(null);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -248,16 +250,43 @@ export default function Navbar() {
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
               
-              <div className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition" title="Notificări">
-                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm animate-ping" />
-                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm" />
-                🔔
+              {/* REPARAT: Clopoțelul de notificări are acum dropdown activ la click */}
+              <div className="relative">
+                <button 
+                  onClick={() => setActiveDropdown(activeDropdown === "notifications" ? null : "notifications")}
+                  className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition flex items-center justify-center" 
+                  title="Notificări Laborator"
+                >
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm animate-ping" />
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm" />
+                  🔔
+                </button>
+
+                {/* MODUL DROP-DOWN NOTIFICĂRI FUNCȚIONALE */}
+                {activeDropdown === "notifications" && (
+                  <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl p-4 shadow-2xl border text-gray-800 z-50 animate-in zoom-in-95 duration-150">
+                    <div className="flex justify-between items-center pb-2 border-b mb-2">
+                      <span className="text-xs font-black text-gray-950">Notificări Comenzi</span>
+                      <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">Live</span>
+                    </div>
+                    <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                      <div className="p-2.5 bg-pink-50/50 rounded-xl border border-pink-100/30 text-[11px] font-bold">
+                        <p className="text-gray-900">🧁 Laborator DulceGust</p>
+                        <p className="text-gray-500 font-medium mt-0.5">Comanda ta a fost preluată cu succes și a intrat în faza de preparare artizanală!</p>
+                      </div>
+                      <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] font-bold opacity-75">
+                        <p className="text-gray-900">🚚 Livrare Rapidă</p>
+                        <p className="text-gray-500 font-medium mt-0.5">Curierul DulceGust a plecat de la laborator spre adresa ta din Iași.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Link href="/" className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg font-bold" title="Acasă">🏠</Link>
-              <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg" title="Chat Live">💬</button>
+              <button onClick={() => { setIsSidebarOpen(true); setActiveDropdown(null); }} className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg" title="Chat Live">💬</button>
               
-              <div onClick={() => setIsCartOpen(true)} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg">
+              <div onClick={() => { setIsCartOpen(true); setActiveDropdown(null); }} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg">
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
@@ -281,6 +310,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
       {/* Pop-up coș lateral */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
@@ -359,7 +389,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Pop-up Modale Autentificare */}
+      {/* Modal Autentificare */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
@@ -380,7 +410,6 @@ export default function Navbar() {
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
               {modalType === "register" && (
                 <div className="flex items-center gap-2">
-                  {/* REPARATĂ CONVERSIA: Explicitarea e.target.checked elimină eroarea TS de tip check */}
                   <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> 
                   <span className="text-[10px]">Accept Termenii</span>
                 </div>
