@@ -248,7 +248,6 @@ export default function Navbar() {
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
               
-              {/* NOU: Clopoțelul de notificări (🔔) adăugat exact în stânga căsuței de Home */}
               <div className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition" title="Notificări">
                 <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm animate-ping" />
                 <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm" />
@@ -336,7 +335,7 @@ export default function Navbar() {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">🗨️ Chat Asistență Laborator (Live)</p>
                 <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-64 justify-between shadow-inner">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
-                    {istoricChat.length === 0 ? (
+                    {!istoricChat || istoricChat.length === 0 ? (
                       <p className="text-gray-500 text-center py-10 font-bold text-[10px]">Trimite un mesaj pentru a începe conversația privată cu noi!</p>
                     ) : (
                       istoricChat.map((m, idx) => (
@@ -360,7 +359,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Modal Autentificare */}
+      {/* Pop-up Modale Autentificare */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
@@ -380,7 +379,11 @@ export default function Navbar() {
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
               {modalType === "register" && (
-                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
+                <div className="flex items-center gap-2">
+                  {/* REPARATĂ CONVERSIA: Explicitarea e.target.checked elimină eroarea TS de tip check */}
+                  <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> 
+                  <span className="text-[10px]">Accept Termenii</span>
+                </div>
               )}
               <button type="submit" className="w-full bg-pink-600 text-white font-black py-3.5 rounded-xl shadow-md">{modalType === "login" ? "Conectare" : "Creează cont"}</button>
             </form>
