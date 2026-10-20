@@ -247,18 +247,25 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
-              <Link href="/" className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg font-bold">🏠</Link>
-              <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg">💬</button>
+              
+              {/* NOU: Clopoțelul de notificări (🔔) adăugat exact în stânga căsuței de Home */}
+              <div className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition" title="Notificări">
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm animate-ping" />
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-white shadow-sm" />
+                🔔
+              </div>
+
+              <Link href="/" className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg font-bold" title="Acasă">🏠</Link>
+              <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg" title="Chat Live">💬</button>
+              
               <div onClick={() => setIsCartOpen(true)} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg">
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
-              
-              {/* REPARAT: Logica curată pentru modalType. Setează direct tipul pop-up-ului */}
               {!user ? (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setModalType("login")} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
-                  <button onClick={() => setModalType("register")} className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-pink-600 shadow-md transition">Register</button>
+                  <button onClick={() => setModalType("register")} className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-pink-600 shadow-md">Register</button>
                 </div>
               ) : (
                 <div className="relative">
@@ -329,7 +336,7 @@ export default function Navbar() {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">🗨️ Chat Asistență Laborator (Live)</p>
                 <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-64 justify-between shadow-inner">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
-                    {!istoricChat || istoricChat.length === 0 ? (
+                    {istoricChat.length === 0 ? (
                       <p className="text-gray-500 text-center py-10 font-bold text-[10px]">Trimite un mesaj pentru a începe conversația privată cu noi!</p>
                     ) : (
                       istoricChat.map((m, idx) => (
@@ -353,7 +360,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Pop-up Modale Autentificare */}
+      {/* Modal Autentificare */}
       {modalType && (
         <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
@@ -373,7 +380,7 @@ export default function Navbar() {
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
               <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
               {modalType === "register" && (
-                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
+                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
               )}
               <button type="submit" className="w-full bg-pink-600 text-white font-black py-3.5 rounded-xl shadow-md">{modalType === "login" ? "Conectare" : "Creează cont"}</button>
             </form>
