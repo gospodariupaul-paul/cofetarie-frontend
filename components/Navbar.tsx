@@ -36,7 +36,6 @@ export default function Navbar() {
   const [modalType, setModalType] = useState<"login" | "register" | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<"notifications" | "profile" | null>(null);
 
-  // NOU: Stări inteligente pentru monitorizarea noutăților din Admin
   const [numarNotificari, setNumarNotificari] = useState<number>(0);
   const [produseNoiNotif, setProduseNoiNotif] = useState<Produs[]>([]);
 
@@ -52,7 +51,6 @@ export default function Navbar() {
   const [istoricChat, setIstoricChat] = useState<MesajChat[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
-  // REPARAT: Preia produsele live și calculează dacă au apărut noutăți față de ultima vizită
   useEffect(() => {
     async function preiaProduseleSiNotificari() {
       try {
@@ -61,20 +59,16 @@ export default function Navbar() {
           const date: Produs[] = await res.json();
           setListaProduse(date || []);
 
-          // Verificăm câte produse știa browserul că există
           const istoricNumar = localStorage.getItem("dulce_gust_numar_produse");
           const numarCurent = date.length;
 
           if (istoricNumar) {
             const vechi = parseInt(istoricNumar, 10);
             if (numarCurent > vechi) {
-              // Diferența reprezintă numărul de notificări noi de pe clopoțel
               setNumarNotificari(numarCurent - vechi);
-              // Luăm ultimele produse adăugate ca noutăți
               setProduseNoiNotif(date.slice(vechi, numarCurent).reverse());
             }
           } else {
-            // Prima rulare, salvăm numărul curent ca bază
             localStorage.setItem("dulce_gust_numar_produse", numarCurent.toString());
           }
         }
@@ -84,12 +78,10 @@ export default function Navbar() {
     }
 
     preiaProduseleSiNotificari();
-    // Interogăm serverul la fiecare 5 secunde pentru a prinde instant încărcările din Admin
     const intervalNotif = setInterval(preiaProduseleSiNotificari, 5000);
     return () => clearInterval(intervalNotif);
   }, [API_URL]);
 
-  // Resetăm numărul de notificări când adminul/clientul deschide dropdown-ul clopoțelului
   const handleDeschideNotificari = () => {
     if (activeDropdown === "notifications") {
       setActiveDropdown(null);
@@ -263,24 +255,16 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
-              
-              {/* MODIFICAT: Clopoțelul afișează acum DINAMIC numărul produselor noi încărcate din Admin */}
               <div className="relative">
                 <button onClick={handleDeschideNotificari} className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition flex items-center justify-center">
                   {numarNotificari > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md animate-bounce">
-                      {numarNotificari}
-                    </span>
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md">{numarNotificari}</span>
                   )}
                   🔔
                 </button>
-
                 {activeDropdown === "notifications" && (
-                  <div className="absolute right-0 mt-3 w-76 bg-white rounded-2xl p-4 shadow-2xl border text-gray-800 z-50 w-72">
-                    <div className="flex justify-between items-center pb-2 border-b mb-2">
-                      <span className="text-xs font-black text-gray-950">Noutăți Laborator 🎂</span>
-                      <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Actualizat</span>
-                    </div>
+                  <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl p-4 shadow-2xl border text-gray-800 z-50">
+                    <div className="flex justify-between items-center pb-2 border-b mb-2"><span className="text-xs font-black text-gray-950">Noutăți Laborator 🎂</span></div>
                     <div className="space-y-2 max-h-[240px] overflow-y-auto">
                       {produseNoiNotif.length === 0 ? (
                         <p className="text-center text-[10px] text-gray-400 font-bold py-6">Ești la curent cu toate bunătățile! 🧁</p>
@@ -289,7 +273,6 @@ export default function Navbar() {
                           <div key={prod.id} onClick={() => { router.push(`/produs/${prod.id}`); setActiveDropdown(null); }} className="p-2.5 bg-pink-50/40 hover:bg-pink-50 rounded-xl border border-pink-100/20 text-[11px] font-bold cursor-pointer transition">
                             <p className="text-pink-600">✨ Produs Nou Adăugat!</p>
                             <p className="text-gray-900 mt-0.5 font-black">{prod.name}</p>
-                            <p className="text-gray-500 font-medium text-[10px] line-clamp-1">{prod.description}</p>
                           </div>
                         ))
                       )}
@@ -304,6 +287,7 @@ export default function Navbar() {
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
+
               {!user ? (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setModalType("login")} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
@@ -324,8 +308,105 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+      {/* Pop-up coș lateral */}
+      {isCartOpen && (
+        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
+          <div className="w-96 bg-white min-h-screen p-6 shadow-2xl flex flex-col justify-between text-gray-800">
+            <div>
+              <div className="flex justify-between items-center pb-4 border-b">
+                <span className="font-black text-gray-950 text-base">🛒 Coș ({cartCount})</span>
+                <button onClick={() => setIsCartOpen(false)} className="text-gray-400 font-bold">✕</button>
+              </div>
+              <div className="mt-6 space-y-4 max-h-[400px] overflow-y-auto">
+                {cart.length === 0 ? <p className="text-center text-xs font-bold text-gray-400 py-10">Coșul este gol. 🧁</p> : 
+                  cart.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl text-xs font-bold">
+                      <p className="text-gray-900 font-black">{item.name} x {item.quantity}</p>
+                      <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700">🗑️</button>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+            {cart.length > 0 && (
+              <div className="border-t pt-4 bg-white">
+                <p className="text-sm font-black mb-4">Total: {cartTotal} LEI</p>
+                <form onSubmit={handleTrimiteComandaNeon} className="space-y-3">
+                  <input type="tel" required value={telefonComanda} onChange={(e) => setTelefonComanda(e.target.value)} placeholder="Telefon livrare" className="w-full border rounded-xl px-4 py-3 text-xs outline-none" />
+                  <button type="submit" disabled={seTrimiteComanda} className="w-full bg-pink-600 text-white font-black py-3 rounded-xl text-xs">{seTrimiteComanda ? "Se trimite..." : "🚀 Trimite Comanda"}</button>
+                </form>
+              </div>
+            )}
+          </div>
+          <div className="flex-1" onClick={() => setIsCartOpen(false)} />
+        </div>
+      )}
 
-      {/* Pop-up coș lateral, Hamburger Sidebar și Modal Autentificare rămân active dedesubt neschimbate */}
+      {/* Hamburger Sidebar */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex">
+          <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 relative">
+            <div>
+              <div className="p-6 bg-gradient-to-r from-pink-600 to-rose-500 text-white flex justify-between items-center shadow-md">
+                <span className="font-black text-sm">🧁 Meniu Laborator DulceGust</span>
+                <button onClick={() => setIsSidebarOpen(false)} className="font-bold text-sm">✕</button>
+              </div>
+              <div className="p-4 border-b font-bold text-xs">
+                <ul className="space-y-0.5">
+                  <li onClick={() => { setIsSidebarOpen(false); window.location.reload(); }} className="p-2.5 rounded-xl hover:bg-pink-50/50 cursor-pointer">🏠 Acasă / Vitrină</li>
+                  <Link href="/admin" onClick={() => setIsSidebarOpen(false)} className="block p-2.5 rounded-xl hover:bg-gray-100">📊 Panou Admin</Link>
+                </ul>
+              </div>
+              <div className="p-4">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">🗨️ Chat Asistență Laborator (Live)</p>
+                <div className="bg-gray-950 rounded-2xl p-3 border border-gray-800 flex flex-col h-64 justify-between shadow-inner">
+                  <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-[11px]">
+                    {istoricChat.length === 0 ? (
+                      <p className="text-gray-500 text-center py-10 font-bold text-[10px]">Trimite un mesaj pentru a începe conversația privată cu noi!</p>
+                    ) : (
+                      istoricChat.map((m, idx) => (
+                        <div key={idx} className={`flex ${m.emitent === "user" ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 font-medium ${m.emitent === "user" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"}`}>{m.text}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <form onSubmit={trimiteMesajChat} className="mt-2 flex gap-1.5 border-t border-gray-800 pt-2 shrink-0">
+                    <input type="text" value={mesajChat} onChange={(e) => setMesajChat(e.target.value)} placeholder="Pune o întrebare..." className="w-full bg-gray-900 text-white rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
+                    <button type="submit" className="bg-pink-600 text-white px-2.5 rounded-lg text-[10px] font-bold">➔</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 text-center text-[10px] font-bold text-gray-400 border-t">📍 Str. Dulce nr. 10, Iași</div>
+          </div>
+          <div className="flex-1" onClick={() => setIsSidebarOpen(false)} />
+        </div>
+      )}
+
+      {/* Modal Autentificare */}
+      {modalType && (
+        <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm border shadow-2xl relative text-gray-800">
+            <button onClick={() => setModalType(null)} className="absolute top-4 right-4 text-gray-400 font-bold text-sm">✕</button>
+            <h3 className="text-sm font-black text-center mb-4">{modalType === "login" ? "Conectare" : "Cont Nou"}</h3>
+            {mesaj.text && (
+              <div className={`text-center text-xs font-bold p-3 rounded-xl mb-4 ${mesaj.tip === "succes" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>{mesaj.text}</div>
+            )}
+            <form onSubmit={handleAuthSubmit} className="space-y-4 font-bold text-xs">
+              {modalType === "register" && (
+                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Numele tău" />
+              )}
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Email" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-xs outline-none" placeholder="Parolă" />
+              {modalType === "register" && (
+                <div className="flex items-center gap-2"><input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} /> <span className="text-[10px]">Accept Termenii</span></div>
+              )}
+              <button type="submit" className="w-full bg-pink-600 text-white font-black py-3.5 rounded-xl shadow-md">{modalType === "login" ? "Conectare" : "Creează cont"}</button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
