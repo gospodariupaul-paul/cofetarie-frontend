@@ -39,6 +39,9 @@ export default function Navbar() {
   const [numarNotificari, setNumarNotificari] = useState<number>(0);
   const [produseNoiNotif, setProduseNoiNotif] = useState<Produs[]>([]);
 
+  // NOU: Stare inteligentă pentru badge-ul roșu cu numărul de mesaje noi necitite
+  const [mesajeNoiCount, setMesajeNoiCount] = useState<number>(0);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -121,7 +124,7 @@ export default function Navbar() {
       return numeProdusCc === textCurat || numeProdusCc.includes(textCurat);
     });
 
-    if (produsGasit && produsGasit.id) {
+    if (produsGasit && CadouGasit.id) {
       router.push(`/produs/${produsGasit.id}`);
     } else {
       router.push(`/?search=${encodeURIComponent(textCautat)}`);
@@ -134,14 +137,24 @@ export default function Navbar() {
 
   const handleApasareLupa = () => executaCautareSauRedirectionare(searchQuery);
 
+  // REPARAT DINAMIC: Calculează mesajele necitite venite de la suport atunci când chatul este închis
   useEffect(() => {
-    if (!isSidebarOpen) return;
     const ID_CLIENT = user?.email || "vizitator_anonim";
     const preiaMesajeDinBazaDeDate = async () => {
       try {
         const res = await fetch(`${API_URL}/api/chat?userId=${ID_CLIENT}`);
         if (res.ok) {
-          const date = await res.json();
+          const date: MesajChat[] = await res.json();
+          
+          // Dacă primim mesaje noi de la suport și meniul e închis, creștem badge-ul numeric
+          if (istoricChat.length > 0 && date.length > istoricChat.length && !isSidebarOpen) {
+            const ultimele = date.slice(istoricChat.length);
+            const deLaSuport = ultimele.filter(m => m.emitent === "suport").length;
+            if (deLaSuport > 0) {
+              setMesajeNoiCount((prev) => prev + deLaSuport);
+            }
+          }
+          
           setIstoricChat(date || []);
         }
       } catch (err) {
@@ -151,7 +164,7 @@ export default function Navbar() {
     preiaMesajeDinBazaDeDate();
     const intervalMesaje = setInterval(preiaMesajeDinBazaDeDate, 3000);
     return () => clearInterval(intervalMesaje);
-  }, [isSidebarOpen, user, API_URL]);
+  }, [isSidebarOpen, user, API_URL, istoricChat.length]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_real");
@@ -255,6 +268,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
+              
               <div className="relative">
                 <button onClick={handleDeschideNotificari} className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition flex items-center justify-center">
                   {numarNotificari > 0 && (
@@ -282,12 +296,24 @@ export default function Navbar() {
               </div>
 
               <Link href="/" className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg font-bold">🏠</Link>
-              <button onClick={() => { setIsSidebarOpen(true); setActiveDropdown(null); }} className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg">💬</button>
+              
+              {/* REPARATĂ: Iconița de chat primește acum un badge roșu numeric dinamic când sSidebarOpen este fals */}
+              <button 
+                onClick={() => { setIsSidebarOpen(true); setActiveDropdown(null); setMesajeNoiCount(0); }} 
+                className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg flex items-center justify-center"
+              >
+                {mesajeNoiCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md animate-bounce">
+                    {mesajeNoiCount}
+                  </span>
+                )}
+                💬
+              </button>
+
               <div onClick={() => { setIsCartOpen(true); setActiveDropdown(null); }} className="relative cursor-pointer p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg">
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
-
               {!user ? (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setModalType("login")} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
@@ -308,6 +334,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
       {/* Pop-up coș lateral */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
