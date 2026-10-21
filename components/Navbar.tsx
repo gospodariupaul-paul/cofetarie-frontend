@@ -38,8 +38,6 @@ export default function Navbar() {
 
   const [numarNotificari, setNumarNotificari] = useState<number>(0);
   const [produseNoiNotif, setProduseNoiNotif] = useState<Produs[]>([]);
-
-  // NOU: Stare inteligentă pentru badge-ul roșu cu numărul de mesaje noi necitite
   const [mesajeNoiCount, setMesajeNoiCount] = useState<number>(0);
 
   const [name, setName] = useState("");
@@ -124,7 +122,8 @@ export default function Navbar() {
       return numeProdusCc === textCurat || numeProdusCc.includes(textCurat);
     });
 
-    if (produsGasit && CadouGasit.id) {
+    // REPARAT: Schimbat din CadouGasit în produsGasit pentru a elimina eroarea TS2304
+    if (produsGasit && produsGasit.id) {
       router.push(`/produs/${produsGasit.id}`);
     } else {
       router.push(`/?search=${encodeURIComponent(textCautat)}`);
@@ -137,7 +136,6 @@ export default function Navbar() {
 
   const handleApasareLupa = () => executaCautareSauRedirectionare(searchQuery);
 
-  // REPARAT DINAMIC: Calculează mesajele necitite venite de la suport atunci când chatul este închis
   useEffect(() => {
     const ID_CLIENT = user?.email || "vizitator_anonim";
     const preiaMesajeDinBazaDeDate = async () => {
@@ -146,7 +144,6 @@ export default function Navbar() {
         if (res.ok) {
           const date: MesajChat[] = await res.json();
           
-          // Dacă primim mesaje noi de la suport și meniul e închis, creștem badge-ul numeric
           if (istoricChat.length > 0 && date.length > istoricChat.length && !isSidebarOpen) {
             const ultimele = date.slice(istoricChat.length);
             const deLaSuport = ultimele.filter(m => m.emitent === "suport").length;
@@ -268,7 +265,6 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
-              
               <div className="relative">
                 <button onClick={handleDeschideNotificari} className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition flex items-center justify-center">
                   {numarNotificari > 0 && (
@@ -297,15 +293,9 @@ export default function Navbar() {
 
               <Link href="/" className="p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg font-bold">🏠</Link>
               
-              {/* REPARATĂ: Iconița de chat primește acum un badge roșu numeric dinamic când sSidebarOpen este fals */}
-              <button 
-                onClick={() => { setIsSidebarOpen(true); setActiveDropdown(null); setMesajeNoiCount(0); }} 
-                className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg flex items-center justify-center"
-              >
+              <button onClick={() => { setIsSidebarOpen(true); setActiveDropdown(null); setMesajeNoiCount(0); }} className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg flex items-center justify-center">
                 {mesajeNoiCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md animate-bounce">
-                    {mesajeNoiCount}
-                  </span>
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md animate-bounce">{mesajeNoiCount}</span>
                 )}
                 💬
               </button>
