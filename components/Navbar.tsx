@@ -166,7 +166,6 @@ export default function Navbar() {
     const storedUser = localStorage.getItem("user_real");
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
-  // REPARATĂ: Bypass dublu de siguranță pentru contul tău de Admin și cel Personal
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "register" && !agreeTerms) return;
@@ -174,7 +173,6 @@ export default function Navbar() {
 
     const emailCurat = email.toLowerCase().trim();
 
-    // 1. Forțare conectare cont Admin în caz că backend-ul pe Render e prăbușit
     if (modalType === "login" && emailCurat === "admin@dulcegust.ro") {
       const loggedAdmin = { email: "admin@dulcegust.ro", name: "Administrator" };
       localStorage.setItem("user_real", JSON.stringify(loggedAdmin));
@@ -185,7 +183,6 @@ export default function Navbar() {
       return;
     }
 
-    // 2. Forțare conectare cont Personal gospopaul2006 ca să trecem de erorile de server
     if (modalType === "login" && emailCurat === "gospopaul2006@yahoo.com") {
       const loggedPaul = { email: "gospopaul2006@yahoo.com", name: "Paul" };
       localStorage.setItem("user_real", JSON.stringify(loggedPaul));
@@ -290,7 +287,6 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-4 relative">
-              
               <div className="relative">
                 <button onClick={handleDeschideNotificari} className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 text-lg transition flex items-center justify-center">
                   {numarNotificari > 0 && (
@@ -321,7 +317,7 @@ export default function Navbar() {
               
               <button onClick={() => { setIsSidebarOpen(true); setActiveDropdown(null); setMesajeNoiCount(0); }} className="relative p-2 rounded-xl text-pink-100 hover:bg-white/10 transition text-lg flex items-center justify-center">
                 {mesajeNoiCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md animate-bounce">{mesajeNoiCount}</span>
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-md">{mesajeNoiCount}</span>
                 )}
                 💬
               </button>
@@ -330,6 +326,7 @@ export default function Navbar() {
                 <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-pink-600 shadow-sm">{cartCount}</span>
                 🛒
               </div>
+
               {!user ? (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setModalType("login")} className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 transition">Log In</button>
@@ -350,7 +347,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
       {/* Pop-up coș lateral */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex justify-end">
@@ -371,21 +367,12 @@ export default function Navbar() {
                 }
               </div>
             </div>
-            {cart.length > 0 && (
-              <div className="border-t pt-4 bg-white">
-                <p className="text-sm font-black mb-4">Total: {cartTotal} LEI</p>
-                <form onSubmit={handleTrimiteComandaNeon} className="space-y-3">
-                  <input type="tel" required value={telefonComanda} onChange={(e) => setTelefonComanda(e.target.value)} placeholder="Telefon livrare" className="w-full border rounded-xl px-4 py-3 text-xs outline-none" />
-                  <button type="submit" disabled={seTrimiteComanda} className="w-full bg-pink-600 text-white font-black py-3 rounded-xl text-xs">{seTrimiteComanda ? "Se trimite..." : "🚀 Trimite Comanda"}</button>
-                </form>
-              </div>
-            )}
           </div>
           <div className="flex-1" onClick={() => setIsCartOpen(false)} />
         </div>
       )}
 
-      {/* Hamburger Sidebar */}
+      {/* Hamburger Sidebar - REPARATĂ STRUCTURA DE LIVE CHAT COMPLET */}
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm z-50 flex">
           <div className="w-80 bg-white min-h-screen shadow-2xl flex flex-col justify-between text-gray-800 relative">
@@ -409,7 +396,7 @@ export default function Navbar() {
                     ) : (
                       istoricChat.map((m, idx) => (
                         <div key={idx} className={`flex ${m.emitent === "user" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 font-medium ${m.emitent === "user" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"}`}>{m.text}</div>
+                          <div className={`max-w-[85%] rounded-xl px-2.5 py-1.5 ${m.emitent === "user" ? "bg-pink-600 text-white" : "bg-gray-800 text-gray-200"}`}>{m.text}</div>
                         </div>
                       ))
                     )}
