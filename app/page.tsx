@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import TechDeals from "@/components/TechDeals";
 import { useCart } from "@/context/CartContext";
@@ -18,7 +18,7 @@ interface Produs {
   tag?: string;
 }
 
-function VitrinaProduse() {
+function VitrinaProduse({ categorieActiva, setCategorieActiva }: { categorieActiva: string; setCategorieActiva: (c: string) => void }) {
   const { addToCart } = useCart();
   const searchParams = useSearchParams();
   const queryCautare = searchParams.get("search") || "";
@@ -26,7 +26,6 @@ function VitrinaProduse() {
   const [produse, setProduse] = useState<Produs[]>([]);
   const [incarcare, setIncarcare] = useState<boolean>(true);
   const [eroare, setEroare] = useState<string | null>(null);
-  const [categorieActiva, setCategorieActiva] = useState<string>("toate");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://onrender.com";
 
@@ -47,11 +46,16 @@ function VitrinaProduse() {
     incarcaDatele();
   }, [API_URL]);
 
-  // REPARAT COMPLET: Redenumit din HospitalFiltrate în produseFiltrate pentru a citi din Neon corect
   const produseFiltrate = produse.filter((p) => {
     if (!p.category) return false;
     if (p.category.toLowerCase().trim() === "tech-deals") return false;
     
+    if (categorieActiva === "naturale") {
+      const potrivireCautare = !queryCautare.trim() || p.name.toLowerCase().includes(queryCautare.toLowerCase());
+      const esteNatural = (p.tag && p.tag.toLowerCase().includes("natural")) || p.description.toLowerCase().includes("natural");
+      return esteNatural && potrivireCautare;
+    }
+
     const potrivireCategorie = categorieActiva === "toate" || p.category.toLowerCase().trim() === categorieActiva.toLowerCase().trim();
     const potrivireCautare = !queryCautare.trim() || 
                              (p.name && p.name.toLowerCase().includes(queryCautare.toLowerCase())) || 
@@ -61,7 +65,7 @@ function VitrinaProduse() {
   });
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-12">
+    <section id="vitrina-sectiune" className="max-w-7xl mx-auto px-6 py-12">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 border-b pb-4 border-pink-100 gap-4">
         <h2 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
           <span>🍰</span> Vitrina Noastră Digitală
@@ -138,6 +142,30 @@ function VitrinaProduse() {
   );
 }
 export default function Home() {
+  const [categorieActiva, setCategorieActiva] = useState<string>("toate");
+  const router = useRouter();
+
+  const handleStatisticaClick = (tip: string) => {
+    if (tip === "clienti") {
+      localStorage.setItem("deschide_hamburger_chat", "true");
+      localStorage.setItem("chat_sugestie", "Bună ziua! Doresc detalii despre o comandă personalizată.");
+      window.dispatchEvent(new Event("storage"));
+      window.location.reload();
+    }
+    if (tip === "retete") {
+      setCategorieActiva("toate");
+      document.getElementById("vitrina-sectiune")?.scrollIntoView({ behavior: "smooth" });
+    }
+    if (tip === "naturale") {
+      setCategorieActiva("naturale");
+      document.getElementById("vitrina-sectiune")?.scrollIntoView({ behavior: "smooth" });
+    }
+    if (tip === "tech") {
+      document.getElementById("tech-deals-section")?.scrollIntoView({ behavior: "smooth" });
+      router.push("/?search=tech");
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-gray-800 flex flex-col justify-between">
       <div>
@@ -149,45 +177,46 @@ export default function Home() {
           {/* Hero Section */}
           <section className="max-w-7xl mx-auto px-6 py-32 text-center relative overflow-hidden rounded-3xl my-6 bg-gray-950 text-white shadow-xl min-h-[350px]">
             <div className="absolute inset-0 w-full h-full opacity-40 z-0">
-              <img
-                src="./hero-cake.jpg"
-                alt="Cofetaria Dulce Gust Background"
-                className="w-full h-full object-cover object-center absolute inset-0 block"
-              />
+              <img src="./hero-cake.jpg" alt="Cofetaria Dulce Gust Background" className="w-full h-full object-cover object-center absolute inset-0 block" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-950/40 to-transparent z-10" />
-            
             <div className="relative z-20 max-w-3xl mx-auto">
               <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white">
                 Cofetăria <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-300">Dulce Gust</span>
               </h1>
               <p className="mt-6 text-sm md:text-base text-gray-200 font-bold max-w-xl mx-auto leading-relaxed">
-                Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru momente de neuitat.
+                Laborator artizanal unde tehnologia hi-tech întâlnește rețetele tradiționale pentru moments de neuitat.
               </p>
             </div>
           </section>
 
-          {/* Statistici */}
+          {/* Casetul de statistici */}
           <section className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center my-6">
             {[
-              { icon: "💝", cifra: "15,000+", desc: "Clienți Fericiți" },
-              { icon: "📜", cifra: "45+", desc: "Rețete Unice" },
-              { icon: "🌿", cifra: "100%", desc: "Ingrediente Naturale" },
-              { icon: "🚀", cifra: "3D Tech", desc: "Design Culinar" }
-            ].map((stat, i) => (
-              <div key={i} className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-pink-100/40 shadow-sm">
-                <div className="text-2xl mb-2">{stat.icon}</div>
+              { id: "clienti", icon: "💝", cifra: "15,000+", desc: "Clienți Fericiți" },
+              { id: "retete", icon: "📜", cifra: "45+", desc: "Rețete Unice" },
+              { id: "naturale", icon: "🌿", cifra: "100%", desc: "Ingrediente Naturale" },
+              { id: "tech", icon: "🚀", cifra: "3D Tech", desc: "Design Culinar" }
+            ].map((stat) => (
+              <button 
+                key={stat.id} 
+                onClick={() => handleStatisticaClick(stat.id)}
+                className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-pink-100/40 shadow-sm hover:shadow-md hover:bg-white/90 transition-all duration-200 group active:scale-95 text-center flex flex-col items-center justify-center w-full"
+              >
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{stat.icon}</div>
                 <p className="text-3xl font-black text-pink-600">{stat.cifra}</p>
                 <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-wider">{stat.desc}</p>
-              </div>
+              </button>
             ))}
           </section>
-
+          {/* CORECTAT: Trimitem corect starile active către VitrinaProduse pentru a evita blocarea randării */}
           <Suspense fallback={<div className="text-center py-20 font-bold text-gray-500">Se încarcă vitrina cu produse...</div>}>
-            <VitrinaProduse />
+            <VitrinaProduse categorieActiva={categorieActiva} setCategorieActiva={setCategorieActiva} />
           </Suspense>
 
-          <TechDeals />
+          <div id="tech-deals-section">
+            <TechDeals />
+          </div>
         </main>
       </div>
 
